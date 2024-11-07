@@ -1,0 +1,2 @@
+run:
+	uvicorn server:app
