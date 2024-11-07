@@ -20,6 +20,9 @@
 #include "Vivox/VivoxToken.h"
 #include "Vivox/VivoxTracer.h"
 #include "Runtime/Launch/Resources/Version.h"
+// EDIT BEGIN
+#include "Custom/VivoxTokenProvider.h"
+// EDIT END
 
 #if ((((ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 1) || ENGINE_MAJOR_VERSION == 4) && PLATFORM_PS4) || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 0 && defined(PLATFORM_PS4)))
 #pragma comment (lib, "SceAudioIn_stub_weak")
@@ -262,40 +265,97 @@ void UVivoxGameInstance::BindChannelSessionHandlers(bool DoBind, IChannelSession
     }
 }
 
-VivoxCoreError UVivoxGameInstance::Login(const FString& PlayerName)
+// EDIT BEGIN
+// VivoxCoreError UVivoxGameInstance::Login(const FString& PlayerName)
+void UVivoxGameInstance::Login(const FString& PlayerName)
+// EDIT END
 {
     Tracer::MajorMethodPrologue("%s", *PlayerName);
 
     if (bLoggedIn)
     {
         UE_LOG(LogVivoxGameInstance, Verbose, TEXT("Already logged in"));
-        return VxErrorSuccess;
+        // EDIT BEGIN
+        // return VxErrorSuccess;
+        return;
+        // EDIT END
     }
 
     if (bLoggingIn)
     {
         UE_LOG(LogVivoxGameInstance, Verbose, TEXT("Already logging in"));
-        return VxErrorSuccess;
+        // EDIT BEGIN
+        // return VxErrorSuccess;
+        return;
+        // EDIT END
     }
 
     if (!bInitialized)
     {
         UE_LOG(LogVivoxGameInstance, Verbose, TEXT("Not initialized"));
-        return VxErrorNotInitialized;
+        // EDIT BEGIN
+        // return VxErrorNotInitialized;
+        return;
+        // EDIT END
     }
 
+    // EDIT BEGIN
+    // LoggedInPlayerName = PlayerName;
+    // LoggedInAccountID = AccountId(VIVOX_VOICE_ISSUER, LoggedInPlayerName, VIVOX_VOICE_DOMAIN);
+    // ILoginSession &LoginSession = VivoxVoiceClient->GetLoginSession(LoggedInAccountID);
+    //
+    // // IMPORTANT: in production, developers should NOT use the insecure client-side token generation methods.
+    // // To generate secure access tokens, call GenerateClientLoginToken or a custom implementation from your game server.
+    // // This is important not only to secure access to chat features, but tokens issued by the client could
+    // // appear expired if the client's clock is set incorrectly, resulting in rejection.
+    // FString LoginToken;
+    // FVivoxToken::GenerateClientLoginToken(LoginSession, LoginToken);
+    //
+    // UE_LOG(LogVivoxGameInstance, Verbose, TEXT("Logging in %s with token %s"), *LoggedInPlayerName, *LoginToken);
+    //
+    // ILoginSession::FOnBeginLoginCompletedDelegate OnBeginLoginCompleteCallback;
+    // OnBeginLoginCompleteCallback.BindLambda([this, &LoginSession](VivoxCoreError Status)
+    // {
+    //     bLoggingIn = false;
+    //     if (VxErrorSuccess != Status)
+    //     {
+    //         UE_LOG(LogVivoxGameInstance, Error, TEXT("Login failure for %s: %s (%d)"), *LoggedInPlayerName, ANSI_TO_TCHAR(FVivoxCoreModule::ErrorToString(Status)), Status);
+    //         BindLoginSessionHandlers(false, LoginSession); // Unbind handlers if we fail to log in
+    //         LoggedInAccountID = AccountId();
+    //         LoggedInPlayerName = FString();
+    //         bLoggedIn = false; // should already be false, but we'll just make sure
+    //     }
+    //     else
+    //     {
+    //         UE_LOG(LogVivoxGameInstance, Log, TEXT("Login success for %s"), *LoggedInPlayerName);
+    //         bLoggedIn = true;
+    //     }
+    // });
+    // BindLoginSessionHandlers(true, LoginSession);
+    // bLoggingIn = true;
+    //
+    // return LoginSession.BeginLogin(VIVOX_VOICE_SERVER, LoginToken, OnBeginLoginCompleteCallback);
     LoggedInPlayerName = PlayerName;
-    LoggedInAccountID = AccountId(VIVOX_VOICE_ISSUER, LoggedInPlayerName, VIVOX_VOICE_DOMAIN);
-    ILoginSession &LoginSession = VivoxVoiceClient->GetLoginSession(LoggedInAccountID);
+	LoggedInAccountID = AccountId(VIVOX_VOICE_ISSUER, LoggedInPlayerName, VIVOX_VOICE_DOMAIN);
 
-    // IMPORTANT: in production, developers should NOT use the insecure client-side token generation methods.
-    // To generate secure access tokens, call GenerateClientLoginToken or a custom implementation from your game server.
-    // This is important not only to secure access to chat features, but tokens issued by the client could
-    // appear expired if the client's clock is set incorrectly, resulting in rejection.
-    FString LoginToken;
-    FVivoxToken::GenerateClientLoginToken(LoginSession, LoginToken);
+    FOnTokenReceived OnTokenReceived;
+    OnTokenReceived.BindUObject(this, &UVivoxGameInstance::OnLoginTokenReceived);
 
-    UE_LOG(LogVivoxGameInstance, Verbose, TEXT("Logging in %s with token %s"), *LoggedInPlayerName, *LoginToken);
+    FTokenRequestV1 TokenRequest;
+    TokenRequest.Type = "login";
+    TokenRequest.Username = LoggedInPlayerName;
+
+    bLoggingIn = true;
+    VivoxTokenProvider::GetToken(TokenRequest, OnTokenReceived);
+    // EDIT END
+}
+
+// EDIT BEGIN
+void UVivoxGameInstance::OnLoginTokenReceived(FString Token)
+{
+    ILoginSession& LoginSession = VivoxVoiceClient->GetLoginSession(LoggedInAccountID);
+
+    UE_LOG(LogVivoxGameInstance, Verbose, TEXT("Logging in %s with token %s"), *LoggedInPlayerName, *Token);
 
     ILoginSession::FOnBeginLoginCompletedDelegate OnBeginLoginCompleteCallback;
     OnBeginLoginCompleteCallback.BindLambda([this, &LoginSession](VivoxCoreError Status)
@@ -315,11 +375,12 @@ VivoxCoreError UVivoxGameInstance::Login(const FString& PlayerName)
             bLoggedIn = true;
         }
     });
-    BindLoginSessionHandlers(true, LoginSession);
-    bLoggingIn = true;
 
-    return LoginSession.BeginLogin(VIVOX_VOICE_SERVER, LoginToken, OnBeginLoginCompleteCallback);
+    BindLoginSessionHandlers(true, LoginSession);
+
+    LoginSession.BeginLogin(VIVOX_VOICE_SERVER, Token, OnBeginLoginCompleteCallback);
 }
+// EDIT END
 
 void UVivoxGameInstance::OnLoginSessionStateChanged(LoginState State)
 {
@@ -391,31 +452,123 @@ VivoxCoreError UVivoxGameInstance::JoinVoiceChannels(FString GameMode, FString O
     }
 }
 
-VivoxCoreError UVivoxGameInstance::Join(ChannelType Type, bool ShouldTransmitOnJoin, const FString& ChannelName, PTTKey AssignChanneltoPTTKey)
+// EDIT BEGIN
+// VivoxCoreError UVivoxGameInstance::Join(ChannelType Type, bool ShouldTransmitOnJoin, const FString& ChannelName, PTTKey AssignChanneltoPTTKey)
+void UVivoxGameInstance::Join(ChannelType Type, bool ShouldTransmitOnJoin, const FString& ChannelName, PTTKey AssignChanneltoPTTKey)
+// EDIT END
 {
     Tracer::MajorMethodPrologue("%s %d %s %s", *UEnumFullToString(ChannelType, Type), ShouldTransmitOnJoin, *ChannelName, *UEnumFullToString(PTTKey, AssignChanneltoPTTKey));
 
     if (!bLoggedIn)
     {
         UE_LOG(LogVivoxGameInstance, Warning, TEXT("Not logged in; cannot join a channel"));
-        return VxErrorNotLoggedIn;
+        // EDIT BEGIN
+        // return VxErrorNotLoggedIn;
+        return;
+        // EDIT END
     }
     ensure(!LoggedInPlayerName.IsEmpty());
     ensure(!ChannelName.IsEmpty());
 
-    ILoginSession &LoginSession = VivoxVoiceClient->GetLoginSession(LoggedInAccountID);
+    // EDIT BEGIN
+    // ILoginSession &LoginSession = VivoxVoiceClient->GetLoginSession(LoggedInAccountID);
+    // // It's perfectly safe to add 3D properties to any channel type (they don't have any effect if the channel type is not Positional)
+    // ChannelId Channel = ChannelId(VIVOX_VOICE_ISSUER, ChannelName, VIVOX_VOICE_DOMAIN, Type, Channel3DProperties(8100, 270, 1.0, EAudioFadeModel::InverseByDistance));
+    // IChannelSession &ChannelSession = LoginSession.GetChannelSession(Channel);
+    //
+    // // IMPORTANT: in production, developers should NOT use the insecure client-side token generation methods.
+    // // To generate secure access tokens, call GenerateClientJoinToken or a custom implementation from your game server.
+    // // This is important not only to secure access to Chat features, but tokens issued by the client could
+    // // appear expired if the client's clock is set incorrectly, resulting in rejection.
+    // FString JoinToken;
+    // FVivoxToken::GenerateClientJoinToken(ChannelSession, JoinToken);
+    //
+    // UE_LOG(LogVivoxGameInstance, Verbose, TEXT("Joining %s to %s with token %s"), *LoggedInPlayerName, *ChannelName, *JoinToken);
+    //
+    // IChannelSession::FOnBeginConnectCompletedDelegate OnBeginConnectCompleteCallback;
+    // OnBeginConnectCompleteCallback.BindLambda([this, ShouldTransmitOnJoin, AssignChanneltoPTTKey, &LoginSession, &ChannelSession](VivoxCoreError Status)
+    // {
+    //     if (VxErrorSuccess != Status)
+    //     {
+    //         UE_LOG(LogVivoxGameInstance, Error, TEXT("Join failure for %s: %s (%d)"), *ChannelSession.Channel().Name(), ANSI_TO_TCHAR(FVivoxCoreModule::ErrorToString(Status)), Status);
+    //         BindChannelSessionHandlers(false, ChannelSession); // Unbind handlers if we fail to join.
+    //         LoginSession.DeleteChannelSession(ChannelSession.Channel()); // Disassociate this ChannelSession from the LoginSession.
+    //     }
+    //     else
+    //     {
+    //         UE_LOG(LogVivoxGameInstance, Log, TEXT("Join success for %s"), *ChannelSession.Channel().Name());
+    //         if (ChannelType::Positional == ChannelSession.Channel().Type())
+    //         {
+    //             ConnectedPositionalChannel = ChannelSession.Channel();
+    //         }
+    //
+    //         if (PTTKey::PTTAreaChannel == AssignChanneltoPTTKey)
+    //         {
+    //             PTTAreaChannel = TPairInitializer<ChannelId, bool>(ChannelSession.Channel(), false);
+    //         }
+    //         else if (PTTKey::PTTTeamChannel == AssignChanneltoPTTKey)
+    //         {
+    //             PTTTeamChannel = TPairInitializer<ChannelId, bool>(ChannelSession.Channel(), false);
+    //         }
+    //
+    //         // NB: It is usually not necessary to adjust transmission when joining channels.
+    //         // The conditional below controls desired behavior specific to this application.
+    //         if (ShouldTransmitOnJoin)
+    //         {
+    //             if (AssignChanneltoPTTKey != PTTKey::PTTNoChannel)
+    //                 MultiChanToggleChat(AssignChanneltoPTTKey);
+    //             else
+    //                 LoginSession.SetTransmissionMode(TransmissionMode::All);
+    //         }
+    //         else if (LoginSession.ChannelSessions().Num() == 1)
+    //         {
+    //             LoginSession.SetTransmissionMode(TransmissionMode::None);
+    //         }
+    //     }
+    // });
+    // BindChannelSessionHandlers(true, ChannelSession);
+    //
+    // return ChannelSession.BeginConnect(true, false, ShouldTransmitOnJoin, JoinToken, OnBeginConnectCompleteCallback);
+    Channel3DProperties ChannelProperties = Channel3DProperties(8100, 270, 1.0, EAudioFadeModel::InverseByDistance);
+
+    FOnTokenReceived OnTokenReceived;
+    OnTokenReceived.BindLambda([this, Type, ShouldTransmitOnJoin, ChannelName, AssignChanneltoPTTKey, ChannelProperties](FString Token)
+    {
+        OnJoinTokenReceived(Token, Type, ShouldTransmitOnJoin, ChannelName, AssignChanneltoPTTKey, ChannelProperties);
+    });
+
+    FTokenRequestV1 TokenRequest;
+    TokenRequest.Type = "join";
+    TokenRequest.Username = LoggedInPlayerName;
+    TokenRequest.ChannelId = ChannelName;
+
+    switch (Type)
+    {
+        case ChannelType::NonPositional:
+            TokenRequest.ChannelType = TEXT("nonpositional");
+            break;
+	    case ChannelType::Positional:
+            TokenRequest.ChannelId += "!" + ChannelProperties.ToString();
+	        TokenRequest.ChannelType = TEXT("positional");
+	        break;
+        case ChannelType::Echo:
+            TokenRequest.ChannelType = TEXT("echo");
+            break;
+    }
+
+    VivoxTokenProvider::GetToken(TokenRequest, OnTokenReceived);
+    // EDIT END
+}
+
+// EDIT BEGIN
+void UVivoxGameInstance::OnJoinTokenReceived(FString Token, ChannelType Type, bool ShouldTransmitOnJoin, const FString& ChannelName, PTTKey AssignChanneltoPTTKey, Channel3DProperties ChannelProperties)
+{
+    ILoginSession& LoginSession = VivoxVoiceClient->GetLoginSession(LoggedInAccountID);
     // It's perfectly safe to add 3D properties to any channel type (they don't have any effect if the channel type is not Positional)
-    ChannelId Channel = ChannelId(VIVOX_VOICE_ISSUER, ChannelName, VIVOX_VOICE_DOMAIN, Type, Channel3DProperties(8100, 270, 1.0, EAudioFadeModel::InverseByDistance));
-    IChannelSession &ChannelSession = LoginSession.GetChannelSession(Channel);
+    ChannelId Channel = ChannelId(VIVOX_VOICE_ISSUER, ChannelName, VIVOX_VOICE_DOMAIN, Type, ChannelProperties);
+    IChannelSession& ChannelSession = LoginSession.GetChannelSession(Channel);
 
-    // IMPORTANT: in production, developers should NOT use the insecure client-side token generation methods.
-    // To generate secure access tokens, call GenerateClientJoinToken or a custom implementation from your game server.
-    // This is important not only to secure access to Chat features, but tokens issued by the client could
-    // appear expired if the client's clock is set incorrectly, resulting in rejection.
-    FString JoinToken;
-    FVivoxToken::GenerateClientJoinToken(ChannelSession, JoinToken);
-
-    UE_LOG(LogVivoxGameInstance, Verbose, TEXT("Joining %s to %s with token %s"), *LoggedInPlayerName, *ChannelName, *JoinToken);
+    UE_LOG(LogVivoxGameInstance, Verbose, TEXT("Joining %s to %s with token %s"), *LoggedInPlayerName, *ChannelName, *Token);
 
     IChannelSession::FOnBeginConnectCompletedDelegate OnBeginConnectCompleteCallback;
     OnBeginConnectCompleteCallback.BindLambda([this, ShouldTransmitOnJoin, AssignChanneltoPTTKey, &LoginSession, &ChannelSession](VivoxCoreError Status)
@@ -458,10 +611,12 @@ VivoxCoreError UVivoxGameInstance::Join(ChannelType Type, bool ShouldTransmitOnJ
             }
         }
     });
+
     BindChannelSessionHandlers(true, ChannelSession);
 
-    return ChannelSession.BeginConnect(true, false, ShouldTransmitOnJoin, JoinToken, OnBeginConnectCompleteCallback);
+    ChannelSession.BeginConnect(true, false, ShouldTransmitOnJoin, Token, OnBeginConnectCompleteCallback);
 }
+// EDIT END
 
 void UVivoxGameInstance::LeaveVoiceChannels()
 {

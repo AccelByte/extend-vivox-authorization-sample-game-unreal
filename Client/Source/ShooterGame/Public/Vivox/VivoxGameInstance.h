@@ -82,10 +82,18 @@ public:
     VivoxCoreError Initialize(int logLevel);
     void Uninitialize();
 
-    VivoxCoreError Login(const FString& PlayerName);
+    // EDIT BEGIN
+    // VivoxCoreError Login(const FString& PlayerName);
+    void Login(const FString& PlayerName);
+    void OnLoginTokenReceived(FString Token);
+    // EDIT END
     void Logout();
     VivoxCoreError JoinVoiceChannels(FString GameMode, FString OnlineSessionId, int32 TeamNum = -1);
-    VivoxCoreError Join(ChannelType ChannelType, bool ShouldTransmitOnJoin, const FString& ChannelName, PTTKey AssignChanneltoPTTKey=PTTKey::PTTNoChannel);
+    // EDIT BEGIN
+    // VivoxCoreError Join(ChannelType ChannelType, bool ShouldTransmitOnJoin, const FString& ChannelName, PTTKey AssignChanneltoPTTKey=PTTKey::PTTNoChannel);
+    void Join(ChannelType ChannelType, bool ShouldTransmitOnJoin, const FString& ChannelName, PTTKey AssignChanneltoPTTKey = PTTKey::PTTNoChannel);
+    void OnJoinTokenReceived(FString Token, ChannelType Type, bool ShouldTransmitOnJoin, const FString& ChannelName, PTTKey AssignChanneltoPTTKey, Channel3DProperties ChannelProperties);
+    // EDIT END
     void LeaveVoiceChannels();
     void Update3DPosition(APawn* Pawn);
 
