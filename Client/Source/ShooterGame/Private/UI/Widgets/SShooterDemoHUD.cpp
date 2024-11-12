@@ -77,7 +77,7 @@ int32 SShooterReplayTimeline::OnPaint(const FPaintArgs& Args, const FGeometry& A
 		const bool bIsEnabled = ShouldBeEnabled(bParentEnabled);
 		const ESlateDrawEffect DrawEffects = bIsEnabled ? ESlateDrawEffect::None : ESlateDrawEffect::DisabledEffect;
 
-		const FLinearColor FinalColorAndOpacity( InWidgetStyle.GetColorAndOpacityTint() * ColorAndOpacity.Get() * ImageBrush->GetTint( InWidgetStyle ) );
+		const FLinearColor FinalColorAndOpacity( InWidgetStyle.GetColorAndOpacityTint() * GetColorAndOpacity() * ImageBrush->GetTint( InWidgetStyle ) );
 
 		// Adjust clipping rect to replay time
 		const float ReplayPercent = DemoDriver->GetDemoCurrentTime() / DemoDriver->GetDemoTotalTime();

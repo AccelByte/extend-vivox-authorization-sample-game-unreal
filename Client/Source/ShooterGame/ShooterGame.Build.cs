@@ -36,7 +36,10 @@ public class ShooterGame : ModuleRules
 				"GameplayTasks",
 				"Gauntlet",
 
-                "Http",
+				// EDIT BEGIN
+                "HTTP",
+				"NetCore",
+				// EDIT END
 			}
 		);
 

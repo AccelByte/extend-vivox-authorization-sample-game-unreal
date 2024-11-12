@@ -21,6 +21,11 @@ struct FShooterGameLoadingScreenBrush : public FSlateDynamicImageBrush, public F
 	{
 		FSlateBrush::AddReferencedObjects(Collector);
 	}
+
+	virtual FString GetReferencerName() const override
+	{
+		return FString(TEXT("FShooterGameLoadingScreenBrush"));
+	}
 };
 
 class SShooterLoadingScreen2 : public SCompoundWidget

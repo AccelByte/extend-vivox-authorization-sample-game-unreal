@@ -19,7 +19,6 @@
 #include "Vivox/VivoxGame_TeamDeathMatch.h"
 #include "Vivox/VivoxHUD.h"
 #include "Vivox/VivoxPlayerController.h"
-#include "Matinee/MatineeActor.h"
 
 AVivoxGame_TeamDeathMatch::AVivoxGame_TeamDeathMatch(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -76,12 +75,9 @@ void AVivoxGame_TeamDeathMatch::GenericPlayerInitialization(AController* C)
             PC->SetCinematicMode(true, HidePlayer, HideHUD, DisableMovement, DisableTurning);
         }
 
+#if !WITH_EDITOR
         // Add the player to any matinees running so that it gets in on any cinematics already running, etc
-        TArray<AMatineeActor*> AllMatineeActors;
-        GetWorld()->GetMatineeActors(AllMatineeActors);
-        for (int32 i = 0; i < AllMatineeActors.Num(); i++)
-        {
-            AllMatineeActors[i]->AddPlayerToDirectorTracks(PC);
-        }
+        GetWorld()->PersistentLevel->PushPendingAutoReceiveInput(PC);
+#endif
     }
 }

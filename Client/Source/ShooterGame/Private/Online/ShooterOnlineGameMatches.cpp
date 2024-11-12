@@ -160,7 +160,15 @@ void FShooterOnlineGameMatches::LeaveGameMatchFeedback(const FUniqueNetId& Local
 				}
 			});
 
-			Matches->ProvideGameMatchFeedback(LocalUserId, MatchId, bTeamReviewOnly, GameMatchFeedbackCompleteDelegate);
+			// EDIT UPGRADE BEGIN
+			// void IOnlineGameMatches::ProvideGameMatchFeedback(
+			//	const FUniqueNetId& UserId,
+			//	const FString& MatchId,
+			//	const bool bReviewTeam,
+			//	const FOnGameMatchFeedbackComplete& CompletionDelegate) = 0;
+			// has been removed.
+			// Matches->ProvideGameMatchFeedback(LocalUserId, MatchId, bTeamReviewOnly, GameMatchFeedbackCompleteDelegate);
+			// EDIT UPGRADE END
 		}
 		else
 		{
@@ -439,7 +447,7 @@ void FShooterOnlineGameMatches::HandleMatchHasStarted(const FString& ActivityId,
 					UE_LOG(LogOnline, Warning, TEXT("FShooterOnlineGameMatches::HandleMatchHasStarted: Player is invalid"));
 					return;
 				}
-				TSharedPtr<const FUniqueNetId> PlayerNetId = bIsABot ? MakeShared<FUniqueNetIdString>(FString::FromInt((*It)->GetPlayerId())) : PlayerId;
+				TSharedPtr<const FUniqueNetId> PlayerNetId = bIsABot ? FUniqueNetIdString::Create(FString::FromInt((*It)->GetPlayerId()), FName("ShooterGame")) : PlayerId;
 				FGameMatchPlayer Player;
 				Player.bIsNpc = bIsABot;
 				FString PlayerName((*It)->GetPlayerName());

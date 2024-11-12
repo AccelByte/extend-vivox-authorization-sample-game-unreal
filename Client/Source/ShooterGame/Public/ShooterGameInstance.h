@@ -6,6 +6,7 @@
 #include "OnlineIdentityInterface.h"
 #include "OnlineSessionInterface.h"
 #include "OnlineGameActivityInterface.h"
+#include "Containers/Ticker.h"
 #include "Engine/GameInstance.h"
 #include "Engine/NetworkDelegates.h"
 #include "ShooterGameInstance.generated.h"
@@ -255,7 +256,7 @@ private:
 	FTickerDelegate TickDelegate;
 
 	/** Handle to various registered delegates */
-	FDelegateHandle TickDelegateHandle;
+	FTSTicker::FDelegateHandle TickDelegateHandle;
 	FDelegateHandle TravelLocalSessionFailureDelegateHandle;
 	FDelegateHandle OnJoinSessionCompleteDelegateHandle;
 	FDelegateHandle OnSearchSessionsCompleteDelegateHandle;

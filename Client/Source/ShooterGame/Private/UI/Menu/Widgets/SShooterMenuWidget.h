@@ -286,7 +286,7 @@ namespace MenuHelper
 
 	/** add standard item to menu with UObject delegate */
 	template< class UserClass >	
-	FORCEINLINE TSharedRef<FShooterMenuItem> AddMenuItem(TSharedPtr<FShooterMenuItem>& MenuItem, const FText& Text, UserClass* inObj, typename FShooterMenuItem::FOnConfirmMenuItem::TUObjectMethodDelegate< UserClass >::FMethodPtr inMethod)
+	FORCEINLINE TSharedRef<FShooterMenuItem> AddMenuItem(TSharedPtr<FShooterMenuItem>& MenuItem, const FText& Text, UserClass* inObj, typename FShooterMenuItem::FOnConfirmMenuItem::TMethodPtr< UserClass > inMethod)
 	{
 		EnsureValid(MenuItem);
 		TSharedPtr<FShooterMenuItem> Item = MakeShareable(new FShooterMenuItem(Text));
@@ -297,7 +297,7 @@ namespace MenuHelper
 
 	/** add standard item to menu with TSharedPtr delegate */
 	template< class UserClass >	
-	FORCEINLINE TSharedRef<FShooterMenuItem> AddMenuItemSP(TSharedPtr<FShooterMenuItem>& MenuItem, const FText& Text, UserClass* inObj, typename FShooterMenuItem::FOnConfirmMenuItem::TSPMethodDelegate< UserClass >::FMethodPtr inMethod)
+	FORCEINLINE TSharedRef<FShooterMenuItem> AddMenuItemSP(TSharedPtr<FShooterMenuItem>& MenuItem, const FText& Text, UserClass* inObj, typename FShooterMenuItem::FOnConfirmMenuItem::TMethodPtr< UserClass > inMethod)
 	{
 		EnsureValid(MenuItem);
 		TSharedPtr<FShooterMenuItem> Item = MakeShareable(new FShooterMenuItem(Text));
@@ -317,7 +317,7 @@ namespace MenuHelper
 
 	/** add multi-choice item to menu with UObject delegate */
 	template< class UserClass >	
-	FORCEINLINE TSharedRef<FShooterMenuItem> AddMenuOption(TSharedPtr<FShooterMenuItem>& MenuItem, const FText& Text, const TArray<FText>& OptionsList, UserClass* inObj, typename FShooterMenuItem::FOnOptionChanged::TUObjectMethodDelegate< UserClass >::FMethodPtr inMethod)
+	FORCEINLINE TSharedRef<FShooterMenuItem> AddMenuOption(TSharedPtr<FShooterMenuItem>& MenuItem, const FText& Text, const TArray<FText>& OptionsList, UserClass* inObj, typename FShooterMenuItem::FOnOptionChanged::TMethodPtr< UserClass > inMethod)
 	{
 		EnsureValid(MenuItem);
 		TSharedPtr<FShooterMenuItem> Item = MakeShareable(new FShooterMenuItem(Text, OptionsList));
@@ -328,7 +328,7 @@ namespace MenuHelper
 
 	/** add multi-choice item to menu with TSharedPtr delegate */
 	template< class UserClass >	
-	FORCEINLINE TSharedRef<FShooterMenuItem> AddMenuOptionSP(TSharedPtr<FShooterMenuItem>& MenuItem, const FText& Text, const TArray<FText>& OptionsList, UserClass* inObj, typename FShooterMenuItem::FOnOptionChanged::TSPMethodDelegate< UserClass >::FMethodPtr inMethod)
+	FORCEINLINE TSharedRef<FShooterMenuItem> AddMenuOptionSP(TSharedPtr<FShooterMenuItem>& MenuItem, const FText& Text, const TArray<FText>& OptionsList, UserClass* inObj, typename FShooterMenuItem::FOnOptionChanged::TMethodPtr< UserClass > inMethod)
 	{
 		EnsureValid(MenuItem);
 		TSharedPtr<FShooterMenuItem> Item = MakeShareable(new FShooterMenuItem(Text, OptionsList));
@@ -360,7 +360,7 @@ namespace MenuHelper
 	}
 
 	template< class UserClass >	
-	FORCEINLINE void PlaySoundAndCall(UWorld* World, const FSlateSound& Sound, int32 UserIndex, UserClass* inObj, typename FShooterMenuItem::FOnConfirmMenuItem::TSPMethodDelegate< UserClass >::FMethodPtr inMethod)
+	FORCEINLINE void PlaySoundAndCall(UWorld* World, const FSlateSound& Sound, int32 UserIndex, UserClass* inObj, typename FShooterMenuItem::FOnConfirmMenuItem::TMethodPtr< UserClass > inMethod)
 	{
 		FSlateApplication::Get().PlaySound(Sound, UserIndex);
 		if (World)

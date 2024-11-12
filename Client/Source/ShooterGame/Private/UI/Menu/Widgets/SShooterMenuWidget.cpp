@@ -30,7 +30,7 @@ void SShooterMenuWidget::Construct(const FArguments& InArgs)
 	PlayerOwner = InArgs._PlayerOwner;
 	bGameMenu = InArgs._IsGameMenu;
 	ControllerHideMenuKey = EKeys::Gamepad_Special_Right;
-	Visibility.Bind(this, &SShooterMenuWidget::GetSlateVisibility);
+	GetVisibilityAttribute().ToAttribute().Bind(this, &SShooterMenuWidget::GetSlateVisibility);
 	FLinearColor MenuTitleTextColor =  FLinearColor(FColor(155,164,182));
 	MenuHeaderHeight = 62.0f;
 	MenuHeaderWidth = 287.0f;

@@ -112,7 +112,7 @@ void SShooterServerList::UpdateSearchStatus()
 					check(SearchResults.Num() == NumSearchResults);
 					if (NumSearchResults == 0)
 					{
-#if PLATFORM_PS4
+#if defined(PLATFORM_PS4)
 						StatusText = LOCTEXT("NoServersFound","NO SERVERS FOUND, PRESS SQUARE TO TRY AGAIN");
 #elif SHOOTER_XBOX_STRINGS
 						StatusText = LOCTEXT("NoServersFound","NO SERVERS FOUND, PRESS X TO TRY AGAIN");
@@ -124,7 +124,7 @@ void SShooterServerList::UpdateSearchStatus()
 					}
 					else
 					{
-#if PLATFORM_PS4
+#if defined(PLATFORM_PS4)
 						StatusText = LOCTEXT("ServersRefresh","PRESS SQUARE TO REFRESH SERVER LIST");
 #elif SHOOTER_XBOX_STRINGS
 						StatusText = LOCTEXT("ServersRefresh","PRESS X TO REFRESH SERVER LIST");

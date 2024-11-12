@@ -39,7 +39,7 @@ public:
     virtual void PlayerTick(float DeltaTime) override;
     virtual void SetupInputComponent() override;
     virtual void HandleReturnToMainMenu() override;
-    void ClientReturnToMainMenu_Implementation(const FString& ReturnReason) override;
+    void ClientReturnToMainMenu_Implementation(const FString& ReturnReason);
 
     UFUNCTION(reliable, client)
     void ClientJoinVoice(const FString &GameMode, const FString &OnlineSessionId, const int32 &TeamNum = -1);

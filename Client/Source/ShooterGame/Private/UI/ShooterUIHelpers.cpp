@@ -10,7 +10,7 @@ FText ShooterUIHelpers::GetProfileOpenText() const
 	// @todo: replace 'GamerCard' with distribution specific terminology (Steam, Origin, UPlay, etc)
 #if SHOOTER_XBOX_STRINGS
 	return NSLOCTEXT("Network", "XB1OpenProfile", "Press A for GamerCard");
-#elif PLATFORM_PS4
+#elif defined(PLATFORM_PS4)
 	return NSLOCTEXT("Network", "PS4OpenProfile", "Press cross button for GamerCard");
 #else
 	return NSLOCTEXT("Network", "PCOpenProfile", "Press Enter for GamerCard");
@@ -45,7 +45,7 @@ FText ShooterUIHelpers::GetProfileSwapText() const
 	// @todo: replace button with icon
 #if SHOOTER_XBOX_STRINGS
 	return NSLOCTEXT("Network", "XB1SwapProfile", "Y Switch User");
-/*#elif PLATFORM_PS4
+/*#elif defined(PLATFORM_PS4)
 	return NSLOCTEXT("Network", "PS4SwapProfile", "Triangle button Switch User");
 */
 #else

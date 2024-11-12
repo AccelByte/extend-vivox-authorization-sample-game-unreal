@@ -8,7 +8,7 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogShooterGameTracer, Log, All);
 
 #if defined(_MSC_VER)
-#define FUNC_NAME    TEXT(__FUNCTION__)
+#define FUNC_NAME    FString(__FUNCTION__)
 #elif defined(__PRETTY_FUNCTION__)
 #define FUNC_NAME __PRETTY_FUNCTION__
 #else

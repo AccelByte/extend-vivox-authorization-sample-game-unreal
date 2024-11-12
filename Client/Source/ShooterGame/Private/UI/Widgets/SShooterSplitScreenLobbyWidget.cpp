@@ -23,7 +23,7 @@ static FAutoConsoleVariableRef CVarShooterSplitScreenMax(
 
 void SShooterSplitScreenLobby::Construct( const FArguments& InArgs )
 {
-#if PLATFORM_PS4
+#if defined(PLATFORM_PS4)
 	PressToPlayText = LOCTEXT("PressToPlay", "Press cross button to Play");
 	PressToFindText = LOCTEXT("PressToFind", "Press cross button to Find Match");
 	PressToStartMatchText = LOCTEXT("PressToStart", "Press cross button To Start Match");
@@ -448,7 +448,7 @@ void SShooterSplitScreenLobby::OnUserCanPlay(const FUniqueNetId& UserId, EUserPr
 	if (PrivilegeResults != (uint32)IOnlineIdentity::EPrivilegeResults::NoFailures && GetGameInstance())
 	{
 		// Xbox shows its own system dialog currently
-#if PLATFORM_PS4
+#if defined(PLATFORM_PS4)
 		const IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetGameInstance()->GetWorld());
 		if (OnlineSub)
 		{

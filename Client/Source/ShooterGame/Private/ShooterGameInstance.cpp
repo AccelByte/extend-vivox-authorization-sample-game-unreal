@@ -151,7 +151,7 @@ void UShooterGameInstance::Init()
 
 	// Register delegate for ticker callback
 	TickDelegate = FTickerDelegate::CreateUObject(this, &UShooterGameInstance::Tick);
-	TickDelegateHandle = FTicker::GetCoreTicker().AddTicker(TickDelegate);
+	TickDelegateHandle = FTSTicker::GetCoreTicker().AddTicker(TickDelegate);
 
 	// Register activities delegate callback
  	OnGameActivityActivationRequestedDelegate = FOnGameActivityActivationRequestedDelegate::CreateUObject(this, &UShooterGameInstance::OnGameActivityActivationRequestComplete);
@@ -182,7 +182,7 @@ void UShooterGameInstance::Shutdown()
 	}
 
 	// Unregister ticker delegate
-	FTicker::GetCoreTicker().RemoveTicker(TickDelegateHandle);
+	FTSTicker::GetCoreTicker().RemoveTicker(TickDelegateHandle);
 }
 
 void UShooterGameInstance::HandleNetworkConnectionStatusChanged( const FString& ServiceName, EOnlineServerConnectionStatus::Type LastConnectionStatus, EOnlineServerConnectionStatus::Type ConnectionStatus )
@@ -316,7 +316,7 @@ void UShooterGameInstance::HandleDemoPlaybackFailure( EDemoPlayFailure::Type Fai
 
 void UShooterGameInstance::StartGameInstance()
 {
-#if PLATFORM_PS4 == 0
+#if !defined(PLATFORM_PS4) == 0
 	TCHAR Parm[4096] = TEXT("");
 
 	const TCHAR* Cmd = FCommandLine::Get();
@@ -1333,7 +1333,7 @@ bool UShooterGameInstance::Tick(float DeltaSeconds)
 						LocalPlayers[i],
 						EShooterDialogType::ControllerDisconnected,
 						FText::Format(NSLOCTEXT("ProfileMessages", "PlayerReconnectControllerFmt", "Player {0}, please reconnect your controller."), FText::AsNumber(i + 1)),
-#if PLATFORM_PS4
+#if defined(PLATFORM_PS4)
 						NSLOCTEXT("DialogButtons", "PS4_CrossButtonContinue", "Cross Button - Continue"),
 #elif SHOOTER_XBOX_STRINGS
 						NSLOCTEXT("DialogButtons", "AButtonContinue", "A - Continue"),
@@ -1939,7 +1939,7 @@ void UShooterGameInstance::StartOnlinePrivilegeTask(const IOnlineIdentity::FOnGe
 	else
 	{
 		// Can only get away with faking the UniqueNetId here because the delegates don't use it
-		Delegate.ExecuteIfBound(FUniqueNetIdString(), Privilege, (uint32)IOnlineIdentity::EPrivilegeResults::NoFailures);
+		Delegate.ExecuteIfBound(*FUniqueNetIdWrapper(), Privilege, (uint32)IOnlineIdentity::EPrivilegeResults::NoFailures);
 	}
 }
 

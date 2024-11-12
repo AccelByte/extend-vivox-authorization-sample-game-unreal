@@ -42,7 +42,7 @@ void UShooterLocalPlayer::LoadPersistentUser()
 	if (PersistentUser == NULL)
 	{
 		// Use the platform id here to be resilient in the face of controller swapping and similar situations.
-		FPlatformUserId PlatformId = GetControllerId();
+		FPlatformUserId PlatformId = FPlatformUserId::CreateFromInternalId(GetControllerId());
 
 		IOnlineIdentityPtr Identity = Online::GetIdentityInterface(GetWorld());
 		if (Identity.IsValid() && GetPreferredUniqueNetId().IsValid())

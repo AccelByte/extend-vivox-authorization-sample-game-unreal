@@ -358,11 +358,14 @@ void UShooterReplicationGraph::InitGlobalActorClassSettings()
 
 void UShooterReplicationGraph::InitGlobalGraphNodes()
 {
+	// EDIT UPGRADE BEGIN
+	// Commented out due to: The RepList allocator is not used anymore so preallocating is not needed.
 	// Preallocate some replication lists.
-	PreAllocateRepList(3, 12);
-	PreAllocateRepList(6, 12);
-	PreAllocateRepList(128, 64);
-	PreAllocateRepList(512, 16);
+	// PreAllocateRepList(3, 12);
+	// PreAllocateRepList(6, 12);
+	// PreAllocateRepList(128, 64);
+	// PreAllocateRepList(512, 16);
+	// EDIT UPGRADE END
 
 	// -----------------------------------------------
 	//	Spatial Actors
@@ -374,7 +377,7 @@ void UShooterReplicationGraph::InitGlobalGraphNodes()
 
 	if (CVar_ShooterRepGraph_DisableSpatialRebuilds)
 	{
-		GridNode->AddSpatialRebuildBlacklistClass(AActor::StaticClass()); // Disable All spatial rebuilding
+		GridNode->AddToClassRebuildDenyList(AActor::StaticClass()); // Disable All spatial rebuilding
 	}
 	
 	AddGlobalGraphNode(GridNode);
@@ -430,8 +433,11 @@ void UShooterReplicationGraph::RouteAddNetworkActorToNodes(const FNewReplicatedA
 			}
 			else
 			{
-				FActorRepListRefView& RepList = AlwaysRelevantStreamingLevelActors.FindOrAdd(ActorInfo.StreamingLevelName);
-				RepList.PrepareForWrite();
+				FActorRepListRefView& RepList = AlwaysRelevantStreamingLevelActors.FindOrAdd(ActorInfo.StreamingLevelName);\
+				// EDIT UPGRADE BEGIN
+				// Commented out due to: PrepareForWrite is not needed before calling operations on the RepList anymore. Use Reserve or Reset if you want to preallocate the array to a specific size
+				// RepList.PrepareForWrite();
+				// EDIT UPGRADE END
 				RepList.ConditionalAdd(ActorInfo.Actor);
 			}
 			break;
@@ -476,7 +482,7 @@ void UShooterReplicationGraph::RouteRemoveNetworkActorToNodes(const FNewReplicat
 			else
 			{
 				FActorRepListRefView& RepList = AlwaysRelevantStreamingLevelActors.FindChecked(ActorInfo.StreamingLevelName);
-				if (RepList.Remove(ActorInfo.Actor) == false)
+				if (RepList.RemoveFast(ActorInfo.Actor) == false)
 				{
 					UE_LOG(LogShooterReplicationGraph, Warning, TEXT("Actor %s was not found in AlwaysRelevantStreamingLevelActors list. LevelName: %s"), *GetActorRepListTypeDebugString(ActorInfo.Actor), *ActorInfo.StreamingLevelName.ToString());
 				}				
@@ -584,7 +590,7 @@ void UShooterReplicationGraphNode_AlwaysRelevant_ForConnection::GatherActorLists
 
 	ReplicationActorList.Reset();
 
-	auto ResetActorCullDistance = [&](AActor* ActorToSet, AActor*& LastActor) {
+	auto ResetActorCullDistance = [&](AActor* ActorToSet, TObjectPtr<AActor> LastActor) {
 
 		if (ActorToSet != LastActor)
 		{
@@ -771,7 +777,10 @@ void UShooterReplicationGraphNode_PlayerStateFrequencyLimiter::PrepareForReplica
 
 	ReplicationActorLists.AddDefaulted();
 	FActorRepListRefView* CurrentList = &ReplicationActorLists[0];
-	CurrentList->PrepareForWrite();
+	// EDIT UPGRADE BEGIN
+	// Commented out due to: PrepareForWrite is not needed before calling operations on the RepList anymore. Use Reserve or Reset if you want to preallocate the array to a specific size
+	// CurrentList.PrepareForWrite();
+	// EDIT UPGRADE END
 
 	// We rebuild our lists of player states each frame. This is not as efficient as it could be but its the simplest way
 	// to handle players disconnecting and keeping the lists compact. If the lists were persistent we would need to defrag them as players left.
@@ -788,7 +797,10 @@ void UShooterReplicationGraphNode_PlayerStateFrequencyLimiter::PrepareForReplica
 		{
 			ReplicationActorLists.AddDefaulted();
 			CurrentList = &ReplicationActorLists.Last(); 
-			CurrentList->PrepareForWrite();
+			// EDIT UPGRADE BEGIN
+			// Commented out due to: PrepareForWrite is not needed before calling operations on the RepList anymore. Use Reserve or Reset if you want to preallocate the array to a specific size
+			// CurrentList.PrepareForWrite();
+			// EDIT UPGRADE END
 		}
 		
 		CurrentList->Add(PS);
