@@ -522,7 +522,9 @@ typedef enum {
     req_account_delete_message = 148,
     req_account_get_conversations = 149,
     req_account_chat_history_set_marker = 150,
-    req_max = req_account_chat_history_set_marker + 1
+    req_account_safe_voice_update_consent = 151,
+    req_account_safe_voice_get_consent = 152,
+    req_max = req_account_safe_voice_get_consent + 1
 } vx_request_type;
 
 /**
@@ -647,7 +649,9 @@ typedef enum {
     resp_account_delete_message = 148,
     resp_account_get_conversations = 149,
     resp_account_chat_history_set_marker = 150,
-    resp_max = resp_account_chat_history_set_marker + 1
+    resp_account_safe_voice_update_consent = 151,
+    resp_account_safe_voice_get_consent = 152,
+    resp_max = resp_account_safe_voice_get_consent + 1
 } vx_response_type;
 
 /**
@@ -1659,6 +1663,8 @@ typedef enum {
 typedef struct vx_conversation {
     char *name;
     vx_conversation_type type;
+    char *display_name;
+    int unread_count;
 } vx_conversation_t;
 #ifndef VIVOX_TYPES_ONLY
 VIVOXSDK_DLLEXPORT int vx_conversation_create(vx_conversation_t **conversation);
@@ -2953,6 +2959,22 @@ VIVOXSDK_DLLEXPORT int vx_get_dynamic_voice_processing_switching_enabled(int *en
  * @return    - 0 if successful, non-zero if failed (SDK not initialized).
  */
 VIVOXSDK_DLLEXPORT int vx_set_dynamic_voice_processing_switching_enabled(int enabled);
+
+/**
+ * Get the mode for the ios_voice_processing_io_mode configuration field
+ *
+ * @param enabled - [out] A pointer to the returned value (2 to always use VPIO, 1 to use VPIO only for speakerphone, 0 to never use the VPIO).
+ * @return - 0 if successful, non-zero if failed.
+ */
+VIVOXSDK_DLLEXPORT int vx_get_ios_voice_processing_io_mode(int *mode);
+
+/**
+ * Set the mode for the ios_voice_processing_io_mode configuration field
+ *
+ * @param enabled - 2 to always use VPIO, 1 to use VPIO only for speakerphone, 0 to never use the VPIO
+ * @return    - 0 if successful, non-zero if failed.
+ */
+VIVOXSDK_DLLEXPORT int vx_set_ios_voice_processing_io_mode(int mode);
 
 /**
  * Return an indication of whether platform-provided AEC is being used.

@@ -18,12 +18,6 @@
 #include "VxcErrors.h"
 #include "Runtime/Launch/Resources/Version.h"
 
-#if (ENGINE_MAJOR_VERSION == 4) && (ENGINE_MINOR_VERSION > 25)
-# define WORKAROUND_UE4_26_27_MEMORY_MGR_CRASH 1
-#else
-# define WORKAROUND_UE4_26_27_MEMORY_MGR_CRASH 0
-#endif
-
 VivoxConfig::VivoxConfig()
 {
     int status = vx_get_default_config3(&config, sizeof(config));
@@ -31,7 +25,7 @@ VivoxConfig::VivoxConfig()
     if (status != 0) return;
     config.pf_logging_callback = LoggingCallback;
 // Disable Unreal's memory management of Vivox resources for UE4.26 and UE4.27 on mobile platforms
-#if ((ENGINE_MAJOR_VERSION == 4 && !(WORKAROUND_UE4_26_27_MEMORY_MGR_CRASH && (PLATFORM_ANDROID || PLATFORM_IOS))) || (ENGINE_MAJOR_VERSION == 5 && !(PLATFORM_ANDROID || PLATFORM_IOS)))
+#if !(ENGINE_MAJOR_VERSION == 4 && ((ENGINE_MINOR_VERSION == 26 || ENGINE_MINOR_VERSION == 27) && (PLATFORM_ANDROID || PLATFORM_IOS)))
     config.pf_malloc_func = &VivoxMalloc;
     config.pf_realloc_func = &VivoxRealloc;
     config.pf_calloc_func = &VivoxCalloc;

@@ -101,6 +101,9 @@ public:
     VivoxCoreError DeletePresenceSubscription(const FString &accountHandle, const AccountId &account, FOnRequestCompletedDelegate theDelegate = FOnRequestCompletedDelegate());
     VivoxCoreError SendSubscriptionReply(const FString &accountHandle, const AccountId &account, const vx_rule_type ruleType, FOnRequestCompletedDelegate theDelegate = FOnRequestCompletedDelegate());
 
+    VivoxCoreError SetSafeVoiceConsentStatus(const FString& accountHandle, const bool &consentToSet, const AccountId& account, const FString& environmentId, const FString& projectId, const FString& UASToken, FOnRequestCompletedDelegate theDelegate = FOnRequestCompletedDelegate());
+    VivoxCoreError GetSafeVoiceConsentStatus(const FString& accountHandle, const AccountId& account, const FString& environmentId, const FString& projectId, const FString& UASToken, FOnRequestCompletedDelegate theDelegate = FOnRequestCompletedDelegate());
+
     VivoxCoreError SendUserToUserMessage(const FString &accountHandle, const AccountId& dest, const FString& language, const FString& message, const FString& applicationStanzaNamespace, const FString& applicationStanzaBody, FOnRequestCompletedDelegate theDelegate);
     VivoxCoreError SetLoginProperties(const FString &accountHandle, int participantPropertyFrequency);
 

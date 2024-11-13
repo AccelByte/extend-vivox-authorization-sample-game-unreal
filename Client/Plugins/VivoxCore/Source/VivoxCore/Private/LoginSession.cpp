@@ -54,6 +54,15 @@ void LoginSession::CleanupEventHandler()
     }
 }
 
+void LoginSession::CleanupLoginSessionState()
+{
+        _channelSessions.Empty();
+        _presenceSubscriptions.Empty();
+        _blockedSubscriptions.Empty();
+        _allowedSubscriptions.Empty();
+        _currentPresence = Presence();
+}
+
 void LoginSession::InitEventHandler()
 {
     CleanupEventHandler();
@@ -80,6 +89,7 @@ void LoginSession::HandleEvent(const vx_evt_base_t& evt)
         if (tevt.state == login_state_logged_out && _loginSessionId.ToString() == FString(tevt.account_handle))
         {
             SetState(LoginState::LoggedOut);
+            CleanupLoginSessionState();
             CleanupEventHandler();
         }
     } else if (evt.type == evt_user_to_user_message) {
@@ -91,7 +101,7 @@ void LoginSession::HandleEvent(const vx_evt_base_t& evt)
     } else if (evt.type == evt_buddy_presence) {
         const vx_evt_buddy_presence_t &tevt = reinterpret_cast<const vx_evt_buddy_presence_t &>(evt);
         if (_state == LoginState::LoggedIn && _loginSessionId.ToString() == FString(tevt.account_handle)) {
-            AccountId buddyAccount = AccountId::CreateFromUri(tevt.buddy_uri, FString(UTF8_TO_TCHAR(tevt.displayname)));
+            AccountId buddyAccount = AccountId::CreateFromUri(tevt.buddy_uri, FString(UTF8_TO_TCHAR(tevt.displayname)), _loginSessionId.UnityEnvironmentId().IsEmpty() ? _loginSessionId.UnityEnvironmentId() : TOptional<FString>());
             if (_presenceSubscriptions.Contains(buddyAccount)) {
                 PresenceSubscription *sub = static_cast<PresenceSubscription*>(_presenceSubscriptions[buddyAccount].Get());
                 sub->HandleEvent(tevt);
@@ -100,7 +110,7 @@ void LoginSession::HandleEvent(const vx_evt_base_t& evt)
     } else if (evt.type == evt_subscription) {
         const vx_evt_subscription_t &tevt = reinterpret_cast<const vx_evt_subscription_t &>(evt);
         if (_state == LoginState::LoggedIn && _loginSessionId.ToString() == FString(tevt.account_handle)) {
-            AccountId buddyAccount = AccountId::CreateFromUri(tevt.buddy_uri);
+            AccountId buddyAccount = AccountId::CreateFromUri(tevt.buddy_uri, TOptional<FString>(), _loginSessionId.UnityEnvironmentId().IsEmpty() ? _loginSessionId.UnityEnvironmentId() : TOptional<FString>());
             EventSubscriptionRequestReceived.Broadcast(buddyAccount);
         }
     } else if (evt.type == evt_media_completion) {
@@ -230,7 +240,10 @@ VivoxCoreError LoginSession::BeginLogin(const FString& server,
             }
         }
         else
+        {
+            SetState(LoginState::LoggedOut);
             theDelegate.ExecuteIfBound(error);
+        }
     });
     VivoxCoreError error = _client.BeginGetConnectorHandle(server, connectorDelegate);
     if (error != VxErrorSuccess)
@@ -278,7 +291,10 @@ VivoxCoreError LoginSession::BeginLogin(const FString& server, const FString& ac
             }
         }
         else
+        {
+            SetState(LoginState::LoggedOut);
             theDelegate.ExecuteIfBound(error);
+        }
     });
     VivoxCoreError error = _client.BeginGetConnectorHandle(server, connectorDelegate);
     if (error != VxErrorSuccess)
@@ -294,6 +310,9 @@ IChannelSession& LoginSession::GetChannelSession(const ChannelId &channelId)
     if (!_channelSessions.Contains(channelId))
     {
         returnValue = TSharedPtr<IChannelSession>(new ChannelSession(*this, _groupHandle, channelId));
+        returnValue->EventChannelStateChanged.AddLambda([this](const IChannelConnectionState& channelConnectionState) {
+            HandleChannelConnectionStateChanged(channelConnectionState);
+            });
         _channelSessions.Add(channelId, returnValue);
     } else
     {
@@ -311,6 +330,7 @@ void LoginSession::DeleteChannelSession(const ChannelId &channelId)
     else if (_channelSessions[channelId].Get()->ChannelState() == ConnectionState::Disconnected)
     {
         UE_LOG(VivoxCore, Log, TEXT("%s: deleting existing, disconnected channel %s"), *CUR_CLASS_FUNC, *channelId.ToString());
+        _channelSessions[channelId]->EventChannelStateChanged.RemoveAll(this);
         _channelSessions.Remove(channelId);
     }
     else
@@ -331,7 +351,7 @@ VivoxCoreError LoginSession::BeginSetCrossMutedCommunications(const AccountId &a
         {
             const vx_resp_account_control_communications_t &response = reinterpret_cast<const vx_resp_account_control_communications_t &>(resp);
             FString blockedAccount = response.blocked_uris;
-            AccountId currentlyBlocking = AccountId::CreateFromUri(blockedAccount);
+            AccountId currentlyBlocking = AccountId::CreateFromUri(blockedAccount, TOptional<FString>(), _loginSessionId.UnityEnvironmentId().IsEmpty() ? _loginSessionId.UnityEnvironmentId() : TOptional<FString>());
             if (currentlyBlocking == accountId && !_crossMutedCommunications.Contains(accountId) && muted)
             {
                 _crossMutedCommunications.Add(accountId);
@@ -363,12 +383,12 @@ VivoxCoreError LoginSession::BeginSetCrossMutedCommunications(const TSet<Account
             {
                 FString left, right;
                 changedAccounts.Split("\n", &left, &right);
-                currentlyChanging = AccountId::CreateFromUri(left);
+                currentlyChanging = AccountId::CreateFromUri(left, TOptional<FString>(), _loginSessionId.UnityEnvironmentId().IsEmpty() ? _loginSessionId.UnityEnvironmentId() : TOptional<FString>());
                 changedAccountIds.Add(currentlyChanging);
                 changedAccounts = right;
                 if (!changedAccounts.Contains("\n"))
                 {
-                    changedAccountIds.Add(AccountId::CreateFromUri(right));
+                    changedAccountIds.Add(AccountId::CreateFromUri(right, TOptional<FString>(), _loginSessionId.UnityEnvironmentId().IsEmpty() ? _loginSessionId.UnityEnvironmentId() : TOptional<FString>()));
                 }
             }
             for (auto& Elem : accountIdSet)
@@ -656,6 +676,32 @@ VivoxCoreError LoginSession::SetTransmissionMode(TransmissionMode mode, ChannelI
     return VxErrorSuccess;
 }
 
+VivoxCoreError LoginSession::BeginSetSafeVoiceConsentStatus(const bool &consentToSet, const FString &environmentId, const FString &projectId, const FString &UASToken, FOnBeginSetSafeVoiceConsentCompletedDelegate theDelegate)
+{
+    VivoxNativeSdk::FOnRequestCompletedDelegate innerDelegate;
+    TSharedPtr<LoginSession> protect = SharedThis(this);
+    innerDelegate.BindLambda([this, theDelegate, protect](const vx_resp_base_t& resp)
+        {
+            const vx_resp_account_safe_voice_update_consent_t& response = reinterpret_cast<const vx_resp_account_safe_voice_update_consent_t&>(resp);
+            theDelegate.ExecuteIfBound(resp.status_code, response.consent_status);
+        });
+    return VivoxNativeSdk::Get().SetSafeVoiceConsentStatus(_loginSessionId.ToString(), consentToSet, _loginSessionId, environmentId, projectId, UASToken, innerDelegate);
+}
+
+
+
+VivoxCoreError LoginSession::BeginGetSafeVoiceConsentStatus(const FString& environmentId, const FString& projectId, const FString& UASToken, FOnBeginGetSafeVoiceConsentCompletedDelegate theDelegate)
+{
+    VivoxNativeSdk::FOnRequestCompletedDelegate innerDelegate;
+    TSharedPtr<LoginSession> protect = SharedThis(this);
+    innerDelegate.BindLambda([this, theDelegate, protect](const vx_resp_base_t& resp)
+        {
+            const vx_resp_account_safe_voice_get_consent_t& response = reinterpret_cast<const vx_resp_account_safe_voice_get_consent_t&>(resp);
+            theDelegate.ExecuteIfBound(resp.status_code, response.consent_status);
+        });
+    return VivoxNativeSdk::Get().GetSafeVoiceConsentStatus(_loginSessionId.ToString(), _loginSessionId, environmentId, projectId, UASToken, innerDelegate);
+}
+
 TransmissionMode LoginSession::GetTransmissionMode() const
 {
     return _transmissionMode;
@@ -709,12 +755,7 @@ void LoginSession::Logout()
     if (_state == LoginState::LoggedIn || _state == LoginState::LoggingIn)
     {
         VivoxNativeSdk::Get().Logout(_loginSessionId.ToString());
-        _channelSessions.Empty();
-        _presenceSubscriptions.Empty();
-        _blockedSubscriptions.Empty();
-        _allowedSubscriptions.Empty();
-        _currentPresence = Presence();
-        _state = LoginState::LoggedOut;
+        SetState(LoginState::LoggingOut);
     }
 }
 
@@ -773,5 +814,19 @@ int LoginSession::GetParticipantUpdateRateForCore() const
         return 0;
     default:
         return 100; // should never happen, but default to StateChange
+    }
+}
+
+void LoginSession::HandleChannelConnectionStateChanged(const IChannelConnectionState& connectionState)
+{
+    if (connectionState.State() == ConnectionState::Connected)
+    {
+        EventChannelJoined.Broadcast(connectionState.ChannelSession());
+        return;
+    }
+    if (connectionState.State() == ConnectionState::Disconnected)
+    {
+        EventChannelLeft.Broadcast(connectionState.ChannelSession());
+        return;
     }
 }

@@ -23,12 +23,12 @@
  */
 
 #pragma once
-#define SDK_VERSION "5.23.0.33737.059b123f"
+#define SDK_VERSION "5.25.0.33792.eac8fffb"
 #define SDK_BRANCH ""
 
 #define VERSION_MAJOR 5
-#define VERSION_MINOR 23
+#define VERSION_MINOR 25
 #define VERSION_MICRO 0
 #define VERSION_DESCR ""
-#define VERSION_BUILD 33737
-#define VERSION_HASH "059b123f"
+#define VERSION_BUILD 33792
+#define VERSION_HASH "eac8fffb"

@@ -217,6 +217,11 @@
 #define VxErrorNoMicrophonePermission 5104
 #define VxErrorMessageTextRateExceeded 5105
 #define VxErrorSessionDoesNotHaveAudio VX_E_SESSION_DOES_NOT_HAVE_AUDIO
+#define VxSafeVoiceConsentUnauthorized 5106
+#define VxSafeVoiceConsentInvalidProjectOrEnvironment 5107
+#define VxSafeVoiceInternalError 5108
+#define VxSafeVoiceConsentNotSet 5109
+#define VxSafeVoiceUnknownError 5110
 
 // 20xxx-20xxx reserved for 3-digit XMPP error codes returned from server
 #define VxXmppErrorCodesRangeStart 20000

@@ -23,7 +23,7 @@ DirectedTextMessage::DirectedTextMessage(::LoginSession &loginSession, const vx_
     _applicationStanzaBody = UTF8_TO_TCHAR(evt.application_stanza_body);
     _applicationStanzaNamespace = UTF8_TO_TCHAR(evt.application_stanza_namespace);
     _language = UTF8_TO_TCHAR(evt.language);
-    _sender = AccountId::CreateFromUri(evt.from_uri);
+    _sender = AccountId::CreateFromUri(evt.from_uri, TOptional<FString>(), loginSession.LoginSessionId().UnityEnvironmentId().IsEmpty() ? loginSession.LoginSessionId().UnityEnvironmentId() : TOptional<FString>());
 }
 
 DirectedTextMessage::~DirectedTextMessage()

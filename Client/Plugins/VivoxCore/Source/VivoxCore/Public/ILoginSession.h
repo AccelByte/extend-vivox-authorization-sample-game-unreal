@@ -138,6 +138,8 @@ public:
     DECLARE_EVENT_OneParam(ILoginSession, DirectedTextMessageReceived, const IDirectedTextMessage &)
     DECLARE_EVENT_TwoParams(ILoginSession, SendDirectedTextMessageFailed, VivoxCoreError, const FString &)
     DECLARE_EVENT_OneParam(ILoginSession, StateChanged, LoginState)
+    DECLARE_EVENT_OneParam(ILoginSession, ChannelJoined, const IChannelSession &)
+    DECLARE_EVENT_OneParam(ILoginSession, ChannelLeft, const IChannelSession &)
     DECLARE_EVENT(ILoginSession, AudioInjectionCompleted)
     DECLARE_MULTICAST_DELEGATE_OneParam(FDelegateBeginSetCrossMutedCommunicationsCompleted, VivoxCoreError)
     DECLARE_MULTICAST_DELEGATE_OneParam(FDelegateBeginClearCrossMutedCommunicationsCompleted, VivoxCoreError)
@@ -147,6 +149,8 @@ public:
     DECLARE_MULTICAST_DELEGATE_OneParam(FDelegateBeginRemoveAllowedSubscriptionCompleted, VivoxCoreError)
     DECLARE_MULTICAST_DELEGATE_OneParam(FDelegateBeginAddPresenceSubscriptionCompleted, VivoxCoreError)
     DECLARE_MULTICAST_DELEGATE_OneParam(FDelegateBeginRemovePresenceSubscriptionCompleted, VivoxCoreError)
+    DECLARE_MULTICAST_DELEGATE_TwoParams(FDelegateBeginSetSafeVoiceConsentCompleted, VivoxCoreError, const bool &)
+    DECLARE_MULTICAST_DELEGATE_TwoParams(FDelegateBeginGetSafeVoiceConsentCompleted, VivoxCoreError, const bool &)
     DECLARE_MULTICAST_DELEGATE_OneParam(FDelegateBeginSendSubscriptionReplyCompleted, VivoxCoreError)
     DECLARE_MULTICAST_DELEGATE_TwoParams(FDelegateBeginSendDirectedMessageCompleted, VivoxCoreError, const FString &)
     DECLARE_MULTICAST_DELEGATE_OneParam(FDelegateBeginStartAudioInjectionCompleted, VivoxCoreError)
@@ -198,10 +202,20 @@ public:
      */
     virtual LoginState State() const = 0;
     /**
-    * \brief The event that fires when State() changes.
-    * \remarks Loss of network connectivity causes this event to fire.
+    * \brief The event that raises when State() changes.
+    * \remarks Loss of network connectivity raises this event with a value of LoginState::LoggedOut, without first transitioning through LoginState::LoggingOut.
     */
     StateChanged EventStateChanged;
+
+    /**
+    * \brief The event that fires when a new ChannelSession is joined
+    */
+    ChannelJoined EventChannelJoined;
+
+    /**
+    * \brief The event that fires when a ChannelSession is le
+    */
+    ChannelLeft EventChannelLeft;
 
     /**
      * \brief The online status that is sent to accounts that subscribe to the presence of this account.
@@ -482,6 +496,31 @@ public:
     */
     virtual bool IsAudioInjecting() = 0;
 
+    typedef FDelegateBeginSetSafeVoiceConsentCompleted::FDelegate FOnBeginSetSafeVoiceConsentCompletedDelegate;
+    /**
+    * \brief Sets the SafeVoice consent for the LoginSession
+    * \param consentToSet The SafeVoice consent status to update to
+    * \param environmentId The Unity Dashboard Environment Id
+    * \param projectId The Unity Dashboard Project Id
+    * \param UASToken The Authentication Token provided by the Unity Authentication Service.
+    * The Unity Authentication Service is most readily available through the Unity Gaming Services Unreal Plugin
+    * \param theDelegate The Delegate to handle once the SetSafeVoiceConsentStatus request is completed , which will contain the updated SafeVoice consent status
+    * \remarks The Account Name for the LoginSession should be the PlayerId returned from signing into the Authentication Service to receive the UASToken
+    */
+    virtual VivoxCoreError BeginSetSafeVoiceConsentStatus(const bool &consentToSet, const FString &environmentId, const FString &projectId, const FString &UASToken, FOnBeginSetSafeVoiceConsentCompletedDelegate theDelegate = FOnBeginSetSafeVoiceConsentCompletedDelegate()) = 0;
+
+    typedef FDelegateBeginGetSafeVoiceConsentCompleted::FDelegate FOnBeginGetSafeVoiceConsentCompletedDelegate;
+    /**
+    * \brief Gets the SafeVoice consent for the LoginSession
+    * \param environmentId The Unity Dashboard Environment Id
+    * \param projectId The Unity Dashboard Project Id
+    * \param UASToken The Authentication Token provided by the Unity Authentication Service.
+    *  The Unity Authentication Service is most readily available through the Unity Gaming Services Unreal Plugin
+    * \param theDelegate The Delegate to handle once the SetSafeVoiceConsentStatus request is completed , which will contain the updated SafeVoice consent status
+    * \remarks The Account Name for the LoginSession should be the PlayerId returned from signing into the Authentication Service to receive the UASToken
+    */
+    virtual VivoxCoreError BeginGetSafeVoiceConsentStatus(const FString& environmentId, const FString& projectId, const FString& UASToken, FOnBeginGetSafeVoiceConsentCompletedDelegate theDelegate = FOnBeginGetSafeVoiceConsentCompletedDelegate()) = 0;
+
     /**
     * \brief An event that indicates you are no longer injecting audio.
     * \remarks This event is raised if injection is stopped early with StopAudioInjection()
@@ -526,8 +565,6 @@ public:
      * supply this function with a ParticipantSpeakingUpdateRate value of Update1Hz, Update5Hz, or Update10Hz for updates of up to 1, 5, or 10
      * times per second as audio energy and other participant properties change. For more information, see the Vivox Unreal Developer Documentation.
      *
-     * Important: Setting a ParticipantSpeakingUpdateRate of any per second rate
-     * will necessarily increase network traffic between the application and the Vivox servers.
      * \return 0 on success
      */
     virtual VivoxCoreError SetParticipantSpeakingUpdateRate(ParticipantSpeakingUpdateRate rate) = 0;
@@ -545,8 +582,8 @@ public:
     virtual ITextToSpeech &TTS() = 0;
 
     /**
-    * \brief Sign the account out of the Vivox system. This does not raise a property event for changing the State to LoginState.LoggedOut,
-    * although the state will be set to that upon completion of the function.
+    * \brief Sign the account out of the Vivox system. Unlike in the case of an unexpected sign out due to loss of network connectivity,
+    * calling this method raises the EventStateChanged event with a value of LoginState::LoggingOut first, before raising a second event for LoginState::LoggedOut.
     */
     virtual void Logout() = 0;
 

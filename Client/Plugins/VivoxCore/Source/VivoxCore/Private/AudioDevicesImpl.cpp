@@ -152,7 +152,8 @@ const IAudioDevice& AudioDevicesImpl::ActiveDevice()
 {
     if (_activeDeviceId.IsEmpty())
         return _noDevice;
-    ensure(_activeDeviceId == NULL_DEVICE_ID || _availableDevices.Contains(_activeDeviceId));
+    if (!(_activeDeviceId == NULL_DEVICE_ID || _availableDevices.Contains(_activeDeviceId)))
+        UE_LOG(VivoxCore, Warning, TEXT("The selected Active Device (\"%s\") is not currently available. Returning a reference to the Null Device instead. If the device set as Active becomes available again, it will be used automatically."), *_activeDeviceId);
     if (!_availableDevices.Contains(_activeDeviceId))
         return _noDevice;
     return **_availableDevices.Find(_activeDeviceId);
@@ -162,7 +163,8 @@ const IAudioDevice& AudioDevicesImpl::EffectiveDevice()
 {
     if (_effectiveDeviceId.IsEmpty())
         return _noDevice;
-    ensure(_effectiveDeviceId == NULL_DEVICE_ID || _availableDevices.Contains(_effectiveDeviceId));
+    if (!(_effectiveDeviceId == NULL_DEVICE_ID || _availableDevices.Contains(_effectiveDeviceId)))
+        UE_LOG(VivoxCore, Error, TEXT("The current Effective Device (\"%s\") does not appear among Available Devices, and is not the Null Device. Returning a reference to the Null Device instead."), *_effectiveDeviceId);
     if (!_availableDevices.Contains(_effectiveDeviceId))
         return _noDevice;
     return **_availableDevices.Find(_effectiveDeviceId);

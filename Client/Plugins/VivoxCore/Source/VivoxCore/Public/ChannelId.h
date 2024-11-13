@@ -46,13 +46,14 @@ class VIVOXCORE_API ChannelId
     FString _domain;
     FString _name;
     FString _issuer;
+    FString _unityEnvironmentId;
     ChannelType _type;
     Channel3DProperties _properties;
 public:
     /**
      * \brief Internal use only.
      */
-    static ChannelId CreateFromUri(const FString &uri);
+    static ChannelId CreateFromUri(const FString &uri, const TOptional<FString>& unityEnvironmentId = TOptional<FString>());
 
     /**
      * \brief Constructor
@@ -65,9 +66,10 @@ public:
      * \param domain The Vivox domain that provides service for this channel, for example: mt1s.vivox.com.
      * \param type The type of channel, each with built-in characteristics (for example, 3D positional effects).
      * \param properties The 3D properties of the channel. Note: This is optional, and is only used for positional channels.
+     * \param unityEnvironmentId The Unity Environment Id, from the Unity Dashboard, to be embedded in the Accounts URI, primarily for Moderation requests
      * \remarks Name must not exceed 200 characters, and can only use the letters A-Z and a-z, the numbers 0-9, and the special characters =+-_.!~()%
      */
-    ChannelId(const FString &issuer, const FString &name, const FString &domain, ChannelType type = ChannelType::NonPositional, Channel3DProperties properties = Channel3DProperties());
+    ChannelId(const FString &issuer, const FString &name, const FString &domain, ChannelType type = ChannelType::NonPositional, Channel3DProperties properties = Channel3DProperties(), const TOptional<FString>& unityEnvironmentId = TOptional<FString>());
     /**
      * \brief Destructor
      */
@@ -93,6 +95,10 @@ public:
      * \brief The 3D properties of the channel.
      */
     Channel3DProperties Properties() const;
+    /**
+     * \brief The Unity Environment of the UGS Project
+     */
+    const FString& UnityEnvironmentId() const;
     /**
      * \brief True if Issuer, Name, and Domain are all empty, and Type is NonPositional.
      */
@@ -120,7 +126,7 @@ public:
 };
 
 /**
- * \brief A standard Unreal Engine hash function that allows ChannelId to be used as a key in UE4 collections.
+ * \brief A standard Unreal Engine hash function that allows ChannelId to be used as a key in UE collections.
  * \param id The channel ID.
  * \return The hash.
  */

@@ -1,11 +1,11 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "5.23.0.unr.0",
+	"VersionName": "5.25.0.unr.0",
 	"FriendlyName": "Vivox Core Unreal",
 	"Description": "Plugin for access to the Vivox Voice network",
 	"Category": "Communications",
-	"CreatedBy": "Mercer Road Corp",
+	"CreatedBy": "Unity Technologies",
 	"CreatedByURL": "https://www.vivox.com/",
 	"DocsURL": "https://docs.vivox.com/v5/general/unreal/5_16_0/en-us/Default.htm",
 	"MarketplaceURL": "",
@@ -16,6 +16,12 @@
 	"Modules": [
 		{
 			"Name": "VivoxCore",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"WhitelistPlatforms": [ "Win64" ]
+		},
+		{
+			"Name": "Moderation",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [ "Win64" ]

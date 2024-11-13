@@ -33,7 +33,7 @@ static bool assign(DST &dst, SRC src)
 Participant::Participant(ChannelSession &parentChannel, const vx_evt_participant_added &evt) :  _parentChannelSession(parentChannel)
 {
     _isSelf = evt.is_current_user == 1;
-    _account = AccountId::CreateFromUri(evt.participant_uri, FString(UTF8_TO_TCHAR(evt.displayname)));
+    _account = AccountId::CreateFromUri(evt.participant_uri, FString(UTF8_TO_TCHAR(evt.displayname)), _parentChannelSession.Channel().UnityEnvironmentId().IsEmpty() ? _parentChannelSession.Channel().UnityEnvironmentId() : TOptional<FString>());
     _audioEnergy = 0.0;
     _inAudio = false;
     _inText = false;

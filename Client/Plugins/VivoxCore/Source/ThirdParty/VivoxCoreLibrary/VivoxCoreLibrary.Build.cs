@@ -60,9 +60,17 @@ public class VivoxCoreLibrary : ModuleRules
             string EnginePluginPath = Path.Combine(Path.GetFullPath(Target.RelativeEnginePath), "Plugins", "VivoxCore", "Source", "ThirdParty", "VivoxCoreLibrary", "Mac", "Release");
             string sdkLib = "libvivoxsdk.dylib";
 
-            // Delay-load the DLLs, so we can load them from the right place
-            PublicDelayLoadDLLs.Add(Path.Combine(EnginePluginPath, sdkLib));
+            if(Target.bBuildEditor)
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(VivoxLibraryPath, sdkLib));
+            }
+            else
+            {
+                PublicAdditionalLibraries.Add(Path.Combine(EnginePluginPath, sdkLib));
+            }
             RuntimeDependencies.Add(Path.Combine(EnginePluginPath, sdkLib), Path.Combine(VivoxLibraryPath, sdkLib), StagedFileType.NonUFS);
+            string PluginPath = Utils.MakePathRelativeTo(ModuleDirectory, Target.RelativeEnginePath);
+            AdditionalPropertiesForReceipt.Add("MacPlugin", Path.Combine(PluginPath, "VivoxCoreSDK_Mac_UPL.xml"));
         }
         else if (UnrealTargetPlatform.TryParse("Android", out parsedPlatform) && Target.Platform == parsedPlatform)
         {
@@ -88,6 +96,8 @@ public class VivoxCoreLibrary : ModuleRules
             PublicAdditionalLibraries.Add(Path.Combine(VivoxLibraryPath, "libvivoxsdk.a"));
             PublicFrameworks.Add( "CFNetwork" );
             PublicFrameworks.Add( "AVFoundation");
+            string PluginPath = Utils.MakePathRelativeTo(ModuleDirectory, Target.RelativeEnginePath);
+            AdditionalPropertiesForReceipt.Add("IOSPlugin", Path.Combine(PluginPath, "VivoxCoreSDK_IOS_UPL.xml"));
         }
         else if (UnrealTargetPlatform.TryParse("Switch", out parsedPlatform) && Target.Platform == parsedPlatform)
         {

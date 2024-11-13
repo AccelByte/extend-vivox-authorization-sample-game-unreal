@@ -2204,6 +2204,37 @@ typedef struct vx_resp_account_control_communications {
 } vx_resp_account_control_communications_t;
 
 /**
+*
+*/
+typedef struct vx_resp_account_safe_voice_update_consent {
+    /**
+     * The common properties for all responses.
+     */
+    vx_resp_base_t base;
+
+    /*
+    * The Safe Voice consent status of the user after updating.
+    */
+    bool consent_status;
+} vx_resp_account_safe_voice_update_consent_t;
+
+/**
+*
+*/
+typedef struct vx_resp_account_safe_voice_get_consent {
+    /**
+     * The common properties for all responses.
+     */
+    vx_resp_base_t base;
+
+    /*
+    * The current Safe Voice consent status of the user.
+    */
+    bool consent_status;
+} vx_resp_account_safe_voice_get_consent_t;
+
+
+/**
  * The response for vx_req_session_transcription_control
  * \see vx_req_session_transcription_control
  * \ingroup session

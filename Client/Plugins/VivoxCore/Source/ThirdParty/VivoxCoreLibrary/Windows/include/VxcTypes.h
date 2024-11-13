@@ -548,6 +548,14 @@ typedef struct vx_sdk_config {
     int dynamic_voice_processing_switching;
 
     /**
+     * Configure how the VoiceProcessingIO unit should be used on iOS
+     * By default, the value is 2, meaning the voiceProcessingIO unit will always be used, other configurations are possible:
+     * - Set the value to 1 to only user the voiceProcessingIO unit when the speakerphone is used for render and capture.
+     * - Set the value to 0 to never use the voiceProcessingIO unit.
+     */
+    int ios_voice_processing_io_mode;
+
+    /**
      * \attention This function is only called on specific platforms. For more information, contact Vivox.
      * If set, this function is called when the active capture device status is updated.
      */
@@ -566,12 +574,22 @@ typedef struct vx_sdk_config {
     int lost_rtp_timeout_ms;
 
     /**
-     * \attention This value is only used on Android.
+     * \attention This value is only used on iOS and Android.
      * \attention This value will only have an effect if dynamic_voice_processing_switching is enabled.
      * The Bluetooth profile that is in use when Vivox is accessing the microphone.
      * - The default value is vx_bluetooth_profile_hfp.
      */
     vx_bluetooth_profile bluetooth_profile;
+
+    /**
+     * \attention This value is only used on Android.
+     * Enable mobile recording conflicts avoidance.
+     *   If Vivox detects that there is more than one recorder, Vivox disables its recorder to allow for others to record.
+     *   Real call dialer app, Voip apps, Voice recognition apps are all prioritized to use the recorder over Vivox if this field is set to 1.
+     * - The default value is 0.
+     * - To enable this capability, set the value to 1.
+     */
+    int mobile_recording_conflicts_avoidance;
 
     /**
      * Called when an unexpected situation is encountered in the SDK.

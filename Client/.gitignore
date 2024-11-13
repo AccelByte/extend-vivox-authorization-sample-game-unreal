@@ -858,3 +858,5 @@ Plugins/**/Intermediate/*
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/c++,csharp,unrealengine,visualstudio,visualstudiocode,clion,rider
+
+Build*/*

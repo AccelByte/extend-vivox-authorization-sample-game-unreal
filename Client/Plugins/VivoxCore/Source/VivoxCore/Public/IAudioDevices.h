@@ -86,12 +86,14 @@ public:
     virtual VivoxCoreError SetActiveDevice(const IAudioDevice &device, const FOnSetActiveDeviceCompletedDelegate& theDelegate = FOnSetActiveDeviceCompletedDelegate()) = 0;
 
     /**
-     * \brief The active audio device.
+     * \brief The virtual or physical audio device selected for active use if available. See EffectiveDevice() for the actual device currently in use.
      */
     virtual const IAudioDevice &ActiveDevice() = 0;
 
     /**
      * \brief The effective audio device. If the active device is set to SystemDevice or CommunicationDevice, then the effective device shows the actual device used.
+     * If the active device is set to NullDevice or a physical device no longer connected to the system, then no device is effectively in use, and NullDevice is returned.
+     * If the active device is set to a specific physical device which is still connected to the system, then that device will be returned.
      */
     virtual const IAudioDevice &EffectiveDevice() = 0;
 

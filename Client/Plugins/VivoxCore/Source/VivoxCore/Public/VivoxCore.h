@@ -35,6 +35,7 @@
 #include "ITTSAudioBuffer.h"
 #include "Presence.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "Features/IModularFeature.h"
 
 class ClientImpl;
 

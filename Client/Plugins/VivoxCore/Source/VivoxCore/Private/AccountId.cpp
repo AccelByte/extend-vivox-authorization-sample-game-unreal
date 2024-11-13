@@ -18,12 +18,12 @@
 #include "VivoxCoreCommonImpl.h"
 #include "Internationalization/Regex.h"
 
-AccountId AccountId::CreateFromUri(const FString& uri, const TOptional<FString>& displayName)
+AccountId AccountId::CreateFromUri(const FString& uri, const TOptional<FString>& displayName, const TOptional<FString>& unityEnvironmentId)
 {
     if (uri.IsEmpty())
         return AccountId();
 
-    const FRegexPattern regex("sip:\\.([^.]+)\\.([^@]+)\\.@([^@]+)");
+    const FRegexPattern regex("sip:.([^.]+).([^.]+)(?:.([a-zA-Z0-9-]+))?.@([a-zA-Z0-9.]+)");
     FRegexMatcher matcher(regex, uri);
     AccountId id;
     bool found = matcher.FindNext();
@@ -31,25 +31,31 @@ AccountId AccountId::CreateFromUri(const FString& uri, const TOptional<FString>&
     if(found) {
         id._issuer = matcher.GetCaptureGroup(1);
         id._name = matcher.GetCaptureGroup(2);
-        id._domain = matcher.GetCaptureGroup(3);
+        if (unityEnvironmentId.IsSet() && matcher.GetCaptureGroup(2).RemoveFromEnd(unityEnvironmentId.GetValue()))
+        {
+            id._name.RemoveFromEnd(unityEnvironmentId.GetValue());
+        }
+        id._domain = matcher.GetCaptureGroup(4);
         if (displayName.IsSet())
             id._displayName = displayName.GetValue();
+        if (unityEnvironmentId.IsSet())
+            id._unityEnvironmentId = unityEnvironmentId.GetValue();
         ensure(id.IsValid());
         return id; // may be invalid
     }
     return AccountId();
 }
 
-FString AccountId::AccountNameFromUri(const FString &uri)
+FString AccountId::AccountNameFromUri(const FString &uri, const TOptional<FString>& unityEnvironmentId)
 {
-    return CreateFromUri(uri).Name();
+    return CreateFromUri(uri, TOptional<FString>(), unityEnvironmentId.IsSet() ? unityEnvironmentId.GetValue() : TOptional<FString>()).Name();
 }
 
 AccountId::AccountId()
 {
 }
 
-AccountId::AccountId(const FString& issuer, const FString& name, const FString& domain, const TOptional<FString>& displayName, const TOptional<TArray<FString>>& spokenLanguages)
+AccountId::AccountId(const FString& issuer, const FString& name, const FString& domain, const TOptional<FString>& displayName, const TOptional<TArray<FString>>& spokenLanguages, const TOptional<FString>& unityEnvironmentId)
 {
     ensure(!issuer.IsEmpty());
     ensure(!name.IsEmpty());
@@ -58,6 +64,8 @@ AccountId::AccountId(const FString& issuer, const FString& name, const FString& 
     _issuer = issuer;
     _name = name;
     _domain = domain;
+    if (unityEnvironmentId.IsSet())
+        _unityEnvironmentId = unityEnvironmentId.GetValue();
     if (displayName.IsSet())
         _displayName = displayName.GetValue();
     if (spokenLanguages.IsSet()) {
@@ -96,6 +104,11 @@ const TArray<FString>& AccountId::SpokenLanguages() const
     return _spokenLanguages;
 }
 
+const FString& AccountId::UnityEnvironmentId() const
+{
+    return _unityEnvironmentId;
+}
+
 bool AccountId::IsEmpty() const
 {
     return _issuer.IsEmpty() && _name.IsEmpty() && _domain.IsEmpty();
@@ -104,7 +117,7 @@ bool AccountId::IsEmpty() const
 FString AccountId::ToString() const
 {
     if (IsEmpty()) return FString();
-    return "sip:." + _issuer + "." + _name + ".@" + _domain;
+    return "sip:." + _issuer + "." + _name  + (_unityEnvironmentId.IsEmpty() ? "" : "." + _unityEnvironmentId) + ".@" + _domain;
 }
 
 bool AccountId::operator==(const AccountId& RHS) const

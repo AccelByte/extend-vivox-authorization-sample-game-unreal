@@ -5511,6 +5511,85 @@ VIVOXSDK_DLLEXPORT int vx_req_session_transcription_control_create(vx_req_sessio
 VIVOXSDK_DLLEXPORT int destroy_req(vx_req_base_t *pCmd);
 #endif
 
+/**
+* Update the player consent status in the Safe Voice service for consent tracking.
+*/
+typedef struct vx_req_account_safe_voice_update_consent {
+    /**
+     * The common properties for all requests
+     */
+    vx_req_base_t base;
+    /**
+     * The handle returned from a successful vx_req_account_anonymous_login request.
+     */
+    VX_HANDLE account_handle;
+    /**
+     * The Unity dashboard Environment Id
+     */
+    char *unity_environment_id;
+    /**
+     * The Unity authentication token
+     */
+    char *unity_authentication_token;
+    /**
+     * The Unity dashboard Project Id
+     */
+    char *unity_project_id;
+    /**
+     * The Unity playerId to update the consent of.
+     */
+    char *player_id;
+    /**
+     * Whether or not the player is consenting to Safe Voice recordings.
+     */
+    bool consent_status;
+} vx_req_account_safe_voice_update_consent_t;
+
+#ifndef VIVOX_TYPES_ONLY
+/**
+* Allocate and initialize a vx_req_account_mint_login_token object.
+*/
+VIVOXSDK_DLLEXPORT int vx_req_account_safe_voice_update_consent_create(vx_req_account_safe_voice_update_consent_t **req);
+#endif
+
+/**
+* Pass a Unity Authentication token to be validated by the Mint service for channel joins
+*/
+typedef struct vx_req_account_safe_voice_get_consent {
+    /**
+     * The common properties for all requests
+     */
+    vx_req_base_t base;
+    /**
+     * The handle returned from a successful vx_req_account_anonymous_login request.
+     */
+    VX_HANDLE account_handle;
+    /**
+     * The Unity dashboard Environment Id
+     */
+    char *unity_environment_id;
+    /**
+     * The Unity authentication token
+     */
+    char *unity_authentication_token;
+    /**
+     * The Unity dashboard Project Id
+     */
+    char *unity_project_id;
+    /**
+     * The Unity playerId to update the consent of.
+     */
+    char *player_id;
+} vx_req_account_safe_voice_get_consent_t;
+
+#ifndef VIVOX_TYPES_ONLY
+/**
+* Allocate and initialize a vx_req_account_mint_login_token object.
+*/
+VIVOXSDK_DLLEXPORT int vx_req_account_safe_voice_get_consent_create(vx_req_account_safe_voice_get_consent_t **req);
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif

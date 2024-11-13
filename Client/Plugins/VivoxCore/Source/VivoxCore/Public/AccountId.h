@@ -25,6 +25,7 @@ class VIVOXCORE_API AccountId
     FString _name;
     FString _issuer;
     FString _displayName;
+    FString _unityEnvironmentId;
     TArray<FString> _spokenLanguages;
 
 public:
@@ -34,13 +35,13 @@ public:
      * \param displayName An optional display name that is seen by others. The default is an empty string.
      * \return The AccountId.
      */
-    static AccountId CreateFromUri(const FString &uri, const TOptional<FString> &displayName = TOptional<FString>());
+    static AccountId CreateFromUri(const FString &uri, const TOptional<FString> &displayName = TOptional<FString>(), const TOptional<FString> &unityEnvironmentId = TOptional<FString>());
     /**
      * \brief A shortcut for AccountId::CreateFromUri(uri).Name(). Note: Internal use only.
      * \param uri The URI of the account.
      * \return The name returned from an AccountId created with a URI.
      */
-    static FString AccountNameFromUri(const FString &uri);
+    static FString AccountNameFromUri(const FString &uri, const TOptional<FString>& unityEnvironmentId = TOptional<FString>());
     /**
      * \brief Default constructor
      */
@@ -52,12 +53,13 @@ public:
      * \param domain The Vivox domain that provides service for this account, for example: mt1s.vivox.com.
      * \param displayName An optional display name that is seen by others. The default is an empty string.
      * \param spokenLanguages An optional array of languages used as hints for audio transcription. The default is an empty array, which implies "en".
+     * \param unityEnvironmentId The Unity Environment Id, from the Unity Dashboard, to be embedded in the Accounts URI, primarily for Moderation requests
      * \remarks The combined length of 'Issuer' + 'Name' must not exceed 124 characters. The DisplayName must not exceed 63 characters.
      * Name and DisplayName can only use the letters A-Z and a-z, the numbers 0-9, and the special characters =+-_.!~()%
      * You can specify up to three spoken languages in order of preference to inform transcription of all users in transcribed channels.
      * Note: IETF language tag strings are not validated, but are expected to conform to BCP 47 (https://tools.ietf.org/html/bcp47).
      */
-    AccountId(const FString &issuer, const FString &name, const FString &domain, const TOptional<FString> &displayName = TOptional<FString>(), const TOptional<TArray<FString>>& spokenLanguages = TOptional<TArray<FString>>());
+    AccountId(const FString &issuer, const FString &name, const FString &domain, const TOptional<FString> &displayName = TOptional<FString>(), const TOptional<TArray<FString>>& spokenLanguages = TOptional<TArray<FString>>(), const TOptional<FString> &unityEnvironmentId = TOptional<FString>());
     /**
      * \brief Destructor
      */
@@ -87,6 +89,10 @@ public:
     * Note: IETF language tag strings are not validated, but are expected to conform to BCP 47 (https://tools.ietf.org/html/bcp47).
     */
     const TArray<FString> &SpokenLanguages() const;
+    /**
+     * \brief The Unity Environment of the UGS Project
+     */
+    const FString& UnityEnvironmentId() const;
 
     /**
      * \brief True if Issuer, Name, and Domain are all empty.
@@ -115,7 +121,7 @@ public:
 };
 
 /**
- * \brief A standard Unreal Engine hash function that allows AccountId to be used as a key in UE4 collections.
+ * \brief A standard Unreal Engine hash function that allows AccountId to be used as a key in UE collections.
  * \param id The account ID.
  * \return The hash.
  */

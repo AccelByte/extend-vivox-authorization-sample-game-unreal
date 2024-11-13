@@ -23,7 +23,7 @@
 #include "VivoxNativeSdk.h"
 #include "VxcErrors.h"
 
-#if ((((ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 1) || ENGINE_MAJOR_VERSION == 4) && PLATFORM_PS4) || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 0 && defined(PLATFORM_PS4)))
+#if (((ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 1) || ENGINE_MAJOR_VERSION == 4) && PLATFORM_PS4)
 #pragma comment (lib, "SceSha1")
 #pragma comment (lib, "SceHmac")
 #pragma comment (lib, "SceAudioIn_stub_weak")

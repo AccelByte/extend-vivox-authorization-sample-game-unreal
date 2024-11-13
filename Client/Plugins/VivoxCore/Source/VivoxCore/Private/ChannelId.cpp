@@ -32,11 +32,11 @@ FString GetUriDesignator(ChannelType value)
     return FString();
 }
 
-ChannelId ChannelId::CreateFromUri(const FString& uri)
+ChannelId ChannelId::CreateFromUri(const FString& uri, const TOptional<FString>& unityEnvironmentId)
 {
     if (uri.IsEmpty())
         return ChannelId();
-    const FRegexPattern regex("sip:confctl-(e|g|d)-([^.]+).([^!@]+)([^@]+)?@([^@]+)");
+    FRegexPattern regex("sip:confctl-(e|g|d)-([^.]+).([^!@.]+)(?:\\.([a-zA-Z0-9-]+))?(?:!p-([^@]+))?@([a-zA-Z0-9.]+)");
     FRegexMatcher matcher(regex, uri);
     ChannelId id;
     bool found = matcher.FindNext();
@@ -45,7 +45,11 @@ ChannelId ChannelId::CreateFromUri(const FString& uri)
         FString type = matcher.GetCaptureGroup(1);
         id._issuer = matcher.GetCaptureGroup(2);
         id._name = matcher.GetCaptureGroup(3);
-        id._domain = matcher.GetCaptureGroup(5);
+        if (unityEnvironmentId.IsSet())
+        {
+            id._unityEnvironmentId = matcher.GetCaptureGroup(4);
+        }
+        id._domain = matcher.GetCaptureGroup(6);
         if (type == "g")
             id._type = ChannelType::NonPositional;
         else if (type == "e")
@@ -53,7 +57,7 @@ ChannelId ChannelId::CreateFromUri(const FString& uri)
         else if (type == "d")
         {
             id._type = ChannelType::Positional;
-            id._properties = Channel3DProperties::CreateFromString(matcher.GetCaptureGroup(4));
+            id._properties = Channel3DProperties::CreateFromString(matcher.GetCaptureGroup(5));
         }
         else
         {
@@ -70,7 +74,7 @@ ChannelId::ChannelId()
     _type = ChannelType::NonPositional;
 }
 
-ChannelId::ChannelId(const FString& issuer, const FString& name, const FString& domain, ChannelType type, Channel3DProperties properties)
+ChannelId::ChannelId(const FString& issuer, const FString& name, const FString& domain, ChannelType type, Channel3DProperties properties, const TOptional<FString>& unityEnvironmentId)
 {
     ensure(!issuer.IsEmpty());
     ensure(!name.IsEmpty());
@@ -80,6 +84,8 @@ ChannelId::ChannelId(const FString& issuer, const FString& name, const FString& 
     _domain = domain;
     _type = type;
     _properties = properties;
+    if (unityEnvironmentId.IsSet())
+        _unityEnvironmentId = unityEnvironmentId.GetValue();
 }
 
 ChannelId::~ChannelId()
@@ -111,6 +117,11 @@ Channel3DProperties ChannelId::Properties() const
     return _properties;
 }
 
+const FString& ChannelId::UnityEnvironmentId() const
+{
+    return _unityEnvironmentId;
+}
+
 bool ChannelId::IsEmpty() const
 {
     return _name.IsEmpty() && _domain.IsEmpty() && _issuer.IsEmpty() && _type == ChannelType::NonPositional;
@@ -133,7 +144,7 @@ FString ChannelId::ToString() const
         break;
     }
     ensure(!prefix.IsEmpty());
-    return prefix + _issuer + "." + _name + (props.IsEmpty() ? "" : "!"+props) + "@" + _domain;
+    return prefix + _issuer + "." + _name + (_unityEnvironmentId.IsEmpty() ? "" : "." + _unityEnvironmentId) + (props.IsEmpty() ? "" : "!" + props) + "@" + _domain;
 }
 
 bool ChannelId::IsNullOrEmpty(ChannelId* id)

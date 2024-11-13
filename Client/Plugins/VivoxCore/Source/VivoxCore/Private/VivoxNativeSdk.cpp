@@ -127,7 +127,7 @@ VivoxCoreError VivoxNativeSdk::Login(const FString & connectorHandle,
     req->access_token = vx_strdup(TCHAR_TO_UTF8(*accessToken));
     req->account_handle = vx_strdup(TCHAR_TO_UTF8(*account.ToString()));
 
-    FString name = "." + account.Issuer() + "." + account.Name() + ".";
+    FString name = "." + account.Issuer() + "." + account.Name() + "." + (account.UnityEnvironmentId().IsEmpty() ? "" : account.UnityEnvironmentId() + ".");
     req->acct_name = vx_strdup(TCHAR_TO_UTF8(*name));
     req->displayname = vx_strdup(TCHAR_TO_UTF8(*account.DisplayName()));
     req->languages = vx_strdup(TCHAR_TO_UTF8(*FString::Join(account.SpokenLanguages(), TEXT(","))));
@@ -369,6 +369,35 @@ VivoxCoreError VivoxNativeSdk::SendSubscriptionReply(const FString& accountHandl
     req->account_handle = vx_fstrdup(accountHandle);
     req->buddy_uri = vx_fstrdup(account.ToString());
     req->rule_type = ruleType;
+    return IssueRequest(&req->base, theDelegate);
+}
+
+VivoxCoreError VivoxNativeSdk::SetSafeVoiceConsentStatus(const FString& accountHandle, const bool& consentToSet, const AccountId& account, const FString& environmentId, const FString& projectId, const FString& UASToken, FOnRequestCompletedDelegate theDelegate)
+{
+    ensure(!accountHandle.IsEmpty());
+    ensure(account.IsValid());
+    vx_req_account_safe_voice_update_consent_t* req;
+    vx_req_account_safe_voice_update_consent_create(&req);
+    req->account_handle = vx_fstrdup(accountHandle);
+    req->player_id = vx_fstrdup(account.Name());
+    req->unity_environment_id = vx_fstrdup(environmentId);
+    req->unity_project_id = vx_fstrdup(projectId);
+    req->unity_authentication_token = vx_fstrdup(UASToken);
+    req->consent_status = consentToSet;
+    return IssueRequest(&req->base, theDelegate);
+}
+
+VivoxCoreError VivoxNativeSdk::GetSafeVoiceConsentStatus(const FString& accountHandle, const AccountId& account, const FString& environmentId, const FString& projectId, const FString& UASToken, FOnRequestCompletedDelegate theDelegate)
+{
+    ensure(!accountHandle.IsEmpty());
+    ensure(account.IsValid());
+    vx_req_account_safe_voice_get_consent_t* req;
+    vx_req_account_safe_voice_get_consent_create(&req);
+    req->account_handle = vx_fstrdup(accountHandle);
+    req->player_id = vx_fstrdup(account.Name());
+    req->unity_environment_id = vx_fstrdup(environmentId);
+    req->unity_project_id = vx_fstrdup(projectId);
+    req->unity_authentication_token = vx_fstrdup(UASToken);
     return IssueRequest(&req->base, theDelegate);
 }
 

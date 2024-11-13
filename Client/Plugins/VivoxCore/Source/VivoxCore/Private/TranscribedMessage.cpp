@@ -22,7 +22,7 @@ TranscribedMessage::TranscribedMessage(::ChannelSession &parent, const vx_evt_tr
     _receivedTime = FDateTime::UtcNow();
     _language = evt.language ? UTF8_TO_TCHAR(evt.language) : UTF8_TO_TCHAR("en");
     _text = UTF8_TO_TCHAR(evt.text);
-    _speaker = AccountId::CreateFromUri(evt.participant_uri);
+    _speaker = AccountId::CreateFromUri(evt.participant_uri, TOptional<FString>(), parent.Channel().UnityEnvironmentId().IsEmpty() ? parent.Channel().UnityEnvironmentId() : TOptional<FString>());
 }
 
 TranscribedMessage::~TranscribedMessage()

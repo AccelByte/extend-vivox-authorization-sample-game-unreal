@@ -38,7 +38,7 @@ Channel3DProperties::Channel3DProperties(int32 audibleDistance, int32 conversati
 
 Channel3DProperties Channel3DProperties::CreateFromString(FString propsString)
 {
-    const FRegexPattern regex("!p-([^-]+)-([^-]+)-([^-]+)-(1|2|3)");
+    const FRegexPattern regex("([^-]+)-([^-]+)-([^-]+)-(1|2|3)");
     FRegexMatcher matcher(regex, propsString);
     bool found = matcher.FindNext();
     if (!found)

@@ -48,6 +48,7 @@ class LoginSession : public ILoginSession, public TSharedFromThis<LoginSession>
 
     void InitEventHandler();
     void CleanupEventHandler();
+    void CleanupLoginSessionState();
 public:
 	LoginSession(ClientImpl &client, const AccountId &loginSessionId);
 	~LoginSession();
@@ -80,6 +81,8 @@ public:
     VivoxCoreError BeginSendDirectedMessage(const AccountId& accountId, const FString& language, const FString& message, const FString& applicationStanzaNamespace, const FString& applicationStanzaBody, FOnBeginSendDirectedMessageCompletedDelegate callback) override;
     VivoxCoreError BeginSendDirectedMessage(const AccountId& accountId, const FString& message, FOnBeginSendDirectedMessageCompletedDelegate callback) override;
     VivoxCoreError BeginStartAudioInjection(const FString &filePath, FOnBeginStartAudioInjectionCompletedDelegate theDelegate) override;
+    VivoxCoreError BeginSetSafeVoiceConsentStatus(const bool& consentToSet, const FString& environmentId, const FString& projectId, const FString& UASToken, FOnBeginSetSafeVoiceConsentCompletedDelegate theDelegate) override;
+    VivoxCoreError BeginGetSafeVoiceConsentStatus(const FString& environmentId, const FString& projectId, const FString& UASToken, FOnBeginGetSafeVoiceConsentCompletedDelegate theDelegate) override;
     VivoxCoreError StopAudioInjection() override;
     bool IsAudioInjecting() override;
     VivoxCoreError SetTransmissionMode(TransmissionMode mode, ChannelId singleChannel) override;
@@ -95,4 +98,5 @@ public:
     void ClearTransmittingChannel(const ChannelId &channelId);
     VivoxCoreError SetTransmissionInCore();
     int GetParticipantUpdateRateForCore() const;
+    void HandleChannelConnectionStateChanged(const IChannelConnectionState& connectionState);
 };
