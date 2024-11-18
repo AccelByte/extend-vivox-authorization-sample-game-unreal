@@ -4,6 +4,7 @@
 
 #include "ShooterGame.h"
 #include "Custom/VivoxTokenProvider.h"
+#include "Core/AccelByteMultiRegistry.h"
 
 #define VIVOX_TOKEN_PROVIDER_URL TEXT("GET VALUE FROM EXTEND APP")
 
@@ -132,6 +133,12 @@ void VivoxTokenProvider::GetToken(const FTokenRequestV1& TokenRequest, FOnTokenR
     HttpRequest->SetURL(VIVOX_TOKEN_PROVIDER_URL);
     HttpRequest->SetVerb(TEXT("POST"));
     HttpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
+
+    FString AccessToken = AccelByte::FMultiRegistry::GetApiClient()->CredentialsRef->GetAccessToken();
+    if (!AccessToken.IsEmpty())
+    {
+        HttpRequest->SetHeader(TEXT("Authorization"), "Bearer " + AccessToken);
+    }
 
     FString JsonPayload = TokenRequest.ToJson();
 

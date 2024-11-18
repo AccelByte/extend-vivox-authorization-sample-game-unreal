@@ -87,6 +87,8 @@ env.read_env()
 
 logger.setLevel(env.log_level("LOG_LEVEL", logging.info))
 
+ab_authorization = env.bool("AB_AUTHORIZATION", False)
+
 vivox_issuer = env.str("VIVOX_ISSUER")
 vivox_signing_key = env.str("VIVOX_SIGNING_KEY")
 
@@ -111,6 +113,16 @@ def vivox_format_user_name(user_id: str) -> str:
 
 class TokenV1(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
+        authorization = request.headers.get("Authorization")
+        if not authorization and ab_authorization:
+            return JSONResponse(
+                content={
+                    "code": 400,
+                    "message": "missing required Authorization header",
+                },
+                status_code=400,
+            )
+
         try:
             body = await request.json()
         except json.decoder.JSONDecodeError as error:

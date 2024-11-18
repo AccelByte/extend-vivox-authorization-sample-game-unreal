@@ -22,6 +22,8 @@
 #include "Runtime/Launch/Resources/Version.h"
 // EDIT BEGIN
 #include "Custom/VivoxTokenProvider.h"
+#include "Core/AccelByteMultiRegistry.h"
+#include "Api/AccelByteUserApi.h"
 // EDIT END
 
 #if ((((ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 1) || ENGINE_MAJOR_VERSION == 4) && PLATFORM_PS4) || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION > 0 && defined(PLATFORM_PS4)))
@@ -335,8 +337,29 @@ void UVivoxGameInstance::Login(const FString& PlayerName)
     // bLoggingIn = true;
     //
     // return LoginSession.BeginLogin(VIVOX_VOICE_SERVER, LoginToken, OnBeginLoginCompleteCallback);
+    LoginOntoAccelByte(PlayerName);
+    // EDIT END
+}
+
+// EDIT BEGIN
+void UVivoxGameInstance::LoginOntoAccelByte(const FString& PlayerName)
+{
+    AccelByte::FMultiRegistry::GetApiClient()->User.LoginWithDeviceId(
+        AccelByte::FVoidHandler::CreateLambda([this, PlayerName]()
+            {
+                OnAccelByteLoginFinished(PlayerName);
+            }),
+        AccelByte::FErrorHandler::CreateLambda([this, PlayerName](const int32 ErrorCode, const FString& ErrorMessage)
+            {
+                OnAccelByteLoginFinished(PlayerName); // proceed even if logging into AccelByte failed (optional)
+            })
+    );
+}
+
+void UVivoxGameInstance::OnAccelByteLoginFinished(const FString& PlayerName)
+{
     LoggedInPlayerName = PlayerName;
-	LoggedInAccountID = AccountId(VIVOX_VOICE_ISSUER, LoggedInPlayerName, VIVOX_VOICE_DOMAIN);
+    LoggedInAccountID = AccountId(VIVOX_VOICE_ISSUER, LoggedInPlayerName, VIVOX_VOICE_DOMAIN);
 
     FOnTokenReceived OnTokenReceived;
     OnTokenReceived.BindUObject(this, &UVivoxGameInstance::OnLoginTokenReceived);
@@ -347,10 +370,8 @@ void UVivoxGameInstance::Login(const FString& PlayerName)
 
     bLoggingIn = true;
     VivoxTokenProvider::GetToken(TokenRequest, OnTokenReceived);
-    // EDIT END
 }
 
-// EDIT BEGIN
 void UVivoxGameInstance::OnLoginTokenReceived(FString Token)
 {
     ILoginSession& LoginSession = VivoxVoiceClient->GetLoginSession(LoggedInAccountID);

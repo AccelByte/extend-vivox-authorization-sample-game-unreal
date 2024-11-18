@@ -10,5 +10,6 @@ public class ShooterGameEditorTarget : TargetRules
 		Type = TargetType.Editor;
 
 		ExtraModuleNames.Add("ShooterGame");
+		ExtraModuleNames.Add("AccelByteUe4Sdk");
 	}
 }

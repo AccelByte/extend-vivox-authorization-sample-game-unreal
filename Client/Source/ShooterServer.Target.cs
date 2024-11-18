@@ -12,5 +12,6 @@ public class ShooterServerTarget : TargetRules
 		bUsesSteam = true;
 
 		ExtraModuleNames.Add("ShooterGame");
-	}
+        ExtraModuleNames.Add("AccelByteUe4Sdk");
+    }
 }

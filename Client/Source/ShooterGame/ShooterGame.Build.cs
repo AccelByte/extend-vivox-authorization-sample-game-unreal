@@ -39,6 +39,7 @@ public class ShooterGame : ModuleRules
 				// EDIT BEGIN
                 "HTTP",
 				"NetCore",
+				"AccelByteUe4Sdk",
 				// EDIT END
 			}
 		);

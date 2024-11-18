@@ -79,6 +79,10 @@
 		{
 			"Name": "Synthesis",
 			"Enabled": true
+		},
+		{
+			"Name": "AccelByteUe4Sdk",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

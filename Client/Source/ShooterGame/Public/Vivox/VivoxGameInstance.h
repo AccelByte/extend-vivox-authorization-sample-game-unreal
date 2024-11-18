@@ -85,6 +85,8 @@ public:
     // EDIT BEGIN
     // VivoxCoreError Login(const FString& PlayerName);
     void Login(const FString& PlayerName);
+    void LoginOntoAccelByte(const FString& PlayerName);
+    void OnAccelByteLoginFinished(const FString& PlayerName);
     void OnLoginTokenReceived(FString Token);
     // EDIT END
     void Logout();
