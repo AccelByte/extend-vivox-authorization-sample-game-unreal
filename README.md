@@ -1,4 +1,4 @@
-# Extend RTU Vivox Sample Game Unreal
+# Extend Vivox Sample Game Unreal
 
 ## Prerequisites
 
